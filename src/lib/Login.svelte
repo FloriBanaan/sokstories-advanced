@@ -33,17 +33,17 @@
     async function generateNewToken(event) {
         event.preventDefault();
         code = await invoke("request_token", {request_new:"no"});
-        getTokenAndName();
+        await getTokenAndName();
     }
 
     async function forceNewToken(event) {
         event.preventDefault();
         code = await invoke("request_token", {request_new:"yes"});
-        getTokenAndName();
+        await getTokenAndName();
     }
 
     async function verify() {
-        getTokenAndName();
+        await getTokenAndName();
         if (token === "key not found") {
             return;
         }
@@ -108,3 +108,9 @@
 {/if}
 
 <button on:click={continueAsGuest}> Continue as guest</button>
+
+<p>verification: {verification}</p>
+<p>token: {token}</p>
+<p>name and id: {name_and_id}</p>
+<p>name: {name}</p>
+<p>code: {code}</p>
