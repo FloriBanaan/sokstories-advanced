@@ -23,6 +23,8 @@ use std::io::{Read, Write};
 
 use std::fs::File;
 
+
+#[tauri::command]
 pub(crate) fn get_data_from_save(key: String) -> Result<String, String>{
     let path = get_sokstories_path()?.join(r"sokstories-advanced\save.json");
     let mut data: Value = if path.exists() {

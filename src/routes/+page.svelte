@@ -1,6 +1,11 @@
 <script>
   import { event } from "@tauri-apps/api";
   import { invoke } from "@tauri-apps/api/core";
+
+  import Login from "$lib/Login.svelte";
+
+  let currentPage = $state("login");
+  let user = $state("");
   
   // let name = $state("");
   // let greetMsg = $state("");
@@ -59,6 +64,14 @@
   //   event.preventDefault();
   //   testStory = await invoke("test_story", { story:testStoryId });
   // }
+
+  function setPage(newPage) {
+    currentPage = newPage;
+  }
+
+  function setUser(verifiedUser) {
+    user = verifiedUser;
+  }
 
   async function fetch_story(event) {
     event.preventDefault();
@@ -135,112 +148,6 @@
     comments = await invoke("fetch_comments", {storyId:story_to_get_comments_from})
   }
 </script>
-
-<main class="container">
-  <!-- <iframe src="https://sok-stories.com/?QBVL?embed?r?c" width='560' height='420'></iframe> -->
-
-  <!-- <form class="row" onsubmit={greet}>
-    <input id="greet-input" placeholder="Enter a name..." bind:value={name} />
-    <button type="submit">Greet</button>
-  </form>
-  <p>{greetMsg}</p> -->
-
-  <form class="row" onsubmit={fetch_story}>
-    <input placeholder="zoek een story..." bind:value={storyId} />
-    <button type="submit">zoeken</button>
-  </form>
-  <p>story: {story}</p>
-
-  <!-- <form class="row" onsubmit={test_story}>
-    <input placeholder="zoek een story..." bind:value={testStoryId} />
-    <button type="submit">zoeken</button>
-  </form>
-  <p>deze story is gemaakt door: {testStory}</p> -->
-
-  <form class="row" onsubmit={get_sokstories_name_and_id}>
-    <input placeholder="blubber" bind:value={blubber} />
-    <button type="submit">pak naam</button>
-  </form>
-  <p>jouw naam is: {name}</p>
-
-  <form class="row" onsubmit={request_token}>
-    <input placeholder="vul maker_id in..." bind:value={maker_id} />
-    <button type="submit">krijg token</button>
-  </form>
-  <p>jouw verification code is: {code}</p>
-
-  <form class="row" onsubmit={request_new_token}>
-    <input placeholder="vul maker_id in..." bind:value={maker_id} />
-    <button type="submit">krijg nieuwe token</button>
-  </form>
-  <p>jouw verification code is: {code}</p>
-
-  <form class="row" onsubmit={init_save_folder}>
-    <input placeholder="maak save folder..." bind:value={blubber} />
-    <button type="submit">maak</button>
-  </form>
-  <p>is het gelukt? {save}</p>
-
-  <form class="row" onsubmit={request_verification}>
-    <input placeholder="verifieer..." bind:value={blubber} />
-    <button type="submit">verifieer</button>
-  </form>
-  <p>geverifieerd: {verified}</p>
-
-  <form class="row" onsubmit={fetch_stories_by_recency}>
-    <input placeholder="voer max in..." bind:value={max} />
-    <button type="submit">haal stories op</button>
-  </form>
-  <p>stories: {stories}</p>
-  
-  <form class="row" onsubmit={create_category}>
-    <input placeholder="geef categorie een naam..." bind:value={category_name} />
-    <button type="submit">maak categorie</button>
-  </form>
-  <p>gelukt? {category_success}</p>
-
-  <form class="row" onsubmit={add_story_to_category}>
-    <input placeholder="vul story in..." bind:value={story_to_category} />
-    <button type="submit">voeg story toe aan categorie</button>
-  </form>
-  <p>gelukt? {add_to_story_success}</p>
-  
-  <form class="row" onsubmit={remove_story_from_category}>
-    <input placeholder="vul story in..." bind:value={story_from_category} />
-    <button type="submit">verwijder story uit categorie</button>
-  </form>
-  <p>gelukt? {remove_story_success}</p>
-
-  <form class="row" onsubmit={remove_category}>
-    <input placeholder="vul categorie in..." bind:value={category_to_remove} />
-    <button type="submit">verwijder categorie</button>
-  </form>
-  <p>gelukt? {category_remove_success}</p>
-
-  <form class="row" onsubmit={fetch_stories_by_name}>
-    <input placeholder="vul story naam in..." bind:value={story_name} />
-    <button type="submit">zoek story</button>
-  </form>
-  <p>stories: {story_name_result}</p>
-
-  <form class="row" onsubmit={fetch_makers_by_name}>
-    <input placeholder="vul maker naam in..." bind:value={maker_name} />
-    <button type="submit">zoek maker</button>
-  </form>
-  <p>makers: {maker_name_result}</p>
-
-  <form class="row" onsubmit={post_comment}>
-    <input placeholder="vul comment in..." bind:value={comment} />
-    <button type="submit">plaats comment</button>
-  </form>
-  <p>gelukt? {comment_result}</p>
-
-  <form class="row" onsubmit={fetch_comments}>
-    <input placeholder="krijg comments van..." bind:value={story_to_get_comments_from} />
-    <button type="submit">haal comments op</button>
-  </form>
-  <p>comments: {comments}</p>
-</main>
 
 <style>
 .logo.vite:hover {
@@ -362,3 +269,114 @@ button {
 }
 
 </style>
+
+
+<main class="container">
+  <p> user:{user}</p>
+  {#if currentPage === "login"}
+  <Login onSetPage={setPage} onSetUser={setUser}></Login>
+  {:else if currentPage === "test"}
+  <!-- <iframe src="https://sok-stories.com/?QBVL?embed?r?c" width='560' height='420'></iframe> -->
+
+  <!-- <form class="row" onsubmit={greet}>
+    <input id="greet-input" placeholder="Enter a name..." bind:value={name} />
+    <button type="submit">Greet</button>
+  </form>
+  <p>{greetMsg}</p> -->
+  <form class="row" onsubmit={fetch_story}>
+    <input placeholder="zoek een story..." bind:value={storyId} />
+    <button type="submit">zoeken</button>
+  </form>
+  <p>story: {story}</p>
+
+  <!-- <form class="row" onsubmit={test_story}>
+    <input placeholder="zoek een story..." bind:value={testStoryId} />
+    <button type="submit">zoeken</button>
+  </form>
+  <p>deze story is gemaakt door: {testStory}</p> -->
+
+  <form class="row" onsubmit={get_sokstories_name_and_id}>
+    <input placeholder="blubber" bind:value={blubber} />
+    <button type="submit">pak naam</button>
+  </form>
+  <p>jouw naam is: {name}</p>
+
+  <form class="row" onsubmit={request_token}>
+    <input placeholder="vul maker_id in..." bind:value={maker_id} />
+    <button type="submit">krijg token</button>
+  </form>
+  <p>jouw verification code is: {code}</p>
+
+  <form class="row" onsubmit={request_new_token}>
+    <input placeholder="vul maker_id in..." bind:value={maker_id} />
+    <button type="submit">krijg nieuwe token</button>
+  </form>
+  <p>jouw verification code is: {code}</p>
+
+  <form class="row" onsubmit={init_save_folder}>
+    <input placeholder="maak save folder..." bind:value={blubber} />
+    <button type="submit">maak</button>
+  </form>
+  <p>is het gelukt? {save}</p>
+
+  <form class="row" onsubmit={request_verification}>
+    <input placeholder="verifieer..." bind:value={blubber} />
+    <button type="submit">verifieer</button>
+  </form>
+  <p>geverifieerd: {verified}</p>
+
+  <form class="row" onsubmit={fetch_stories_by_recency}>
+    <input placeholder="voer max in..." bind:value={max} />
+    <button type="submit">haal stories op</button>
+  </form>
+  <p>stories: {stories}</p>
+  
+  <form class="row" onsubmit={create_category}>
+    <input placeholder="geef categorie een naam..." bind:value={category_name} />
+    <button type="submit">maak categorie</button>
+  </form>
+  <p>gelukt? {category_success}</p>
+
+  <form class="row" onsubmit={add_story_to_category}>
+    <input placeholder="vul story in..." bind:value={story_to_category} />
+    <button type="submit">voeg story toe aan categorie</button>
+  </form>
+  <p>gelukt? {add_to_story_success}</p>
+  
+  <form class="row" onsubmit={remove_story_from_category}>
+    <input placeholder="vul story in..." bind:value={story_from_category} />
+    <button type="submit">verwijder story uit categorie</button>
+  </form>
+  <p>gelukt? {remove_story_success}</p>
+
+  <form class="row" onsubmit={remove_category}>
+    <input placeholder="vul categorie in..." bind:value={category_to_remove} />
+    <button type="submit">verwijder categorie</button>
+  </form>
+  <p>gelukt? {category_remove_success}</p>
+
+  <form class="row" onsubmit={fetch_stories_by_name}>
+    <input placeholder="vul story naam in..." bind:value={story_name} />
+    <button type="submit">zoek story</button>
+  </form>
+  <p>stories: {story_name_result}</p>
+
+  <form class="row" onsubmit={fetch_makers_by_name}>
+    <input placeholder="vul maker naam in..." bind:value={maker_name} />
+    <button type="submit">zoek maker</button>
+  </form>
+  <p>makers: {maker_name_result}</p>
+
+  <form class="row" onsubmit={post_comment}>
+    <input placeholder="vul comment in..." bind:value={comment} />
+    <button type="submit">plaats comment</button>
+  </form>
+  <p>gelukt? {comment_result}</p>
+
+  <form class="row" onsubmit={fetch_comments}>
+    <input placeholder="krijg comments van..." bind:value={story_to_get_comments_from} />
+    <button type="submit">haal comments op</button>
+  </form>
+  <p>comments: {comments}</p>
+  {/if}
+</main>

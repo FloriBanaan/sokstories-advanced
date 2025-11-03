@@ -423,7 +423,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![fetch_story, get_sokstories_name_and_id, request_token, init_save_folder, request_verification, fetch_stories_by_recency, create_category, add_story_to_category, remove_story_from_category, remove_category, fetch_stories_by_name, fetch_makers_by_name, post_comment, fetch_comments])
+        .invoke_handler(tauri::generate_handler![fetch_story, get_sokstories_name_and_id, request_token, init_save_folder, request_verification, fetch_stories_by_recency, create_category, add_story_to_category, remove_story_from_category, remove_category, fetch_stories_by_name, fetch_makers_by_name, post_comment, fetch_comments, get_data_from_save])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
