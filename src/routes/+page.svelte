@@ -3,56 +3,58 @@
   import { invoke } from "@tauri-apps/api/core";
 
   import Login from "$lib/Login.svelte";
+  import Categories from "$lib/Categories.svelte";
 
   let currentPage = $state("login");
   let user = $state("");
+
   
   // let name = $state("");
   // let greetMsg = $state("");
   // let testStoryId = $state("");
 
-  let storyId = $state("");
-  let story = $state("");
+  // let storyId = $state("");
+  // let story = $state("");
   // let testStory = $state("");
 
-  let gameCode = $state("QBVL");
+  // let gameCode = $state("QBVL");
 
-  let name = $state("");
-  let blubber = $state("");
+  // let name = $state("");
+  // let blubber = $state("");
 
-  let maker_id = $state("");
-  let code = $state("");
+  // let maker_id = $state("");
+  // let code = $state("");
 
-  let save = $state("");
+  // let save = $state("");
 
-  let verified = $state("");
+  // let verified = $state("");
 
-  let max = $state("");
-  let stories = $state("");
+  // let max = $state("");
+  // let stories = $state("");
 
-  let category_name = $state("");
-  let category_success = $state("");
+  // let category_name = $state("");
+  // let category_success = $state("");
 
-  let story_to_category = $state("");
-  let add_to_story_success = $state("");
+  // let story_to_category = $state("");
+  // let add_to_story_success = $state("");
 
-  let story_from_category = $state("");
-  let remove_story_success = $state("");
+  // let story_from_category = $state("");
+  // let remove_story_success = $state("");
 
-  let category_to_remove = $state("");
-  let category_remove_success = $state("");
+  // let category_to_remove = $state("");
+  // let category_remove_success = $state("");
 
-  let story_name = $state("");
-  let story_name_result = $state("");
+  // let story_name = $state("");
+  // let story_name_result = $state("");
 
-  let maker_name = $state("");
-  let maker_name_result = $state("");
+  // let maker_name = $state("");
+  // let maker_name_result = $state("");
 
-  let comment = $state("");
-  let comment_result = $state("");
+  // let comment = $state("");
+  // let comment_result = $state("");
 
-  let story_to_get_comments_from = $state("");
-  let comments = $state("");
+  // let story_to_get_comments_from = $state("");
+  // let comments = $state("");
 
   // async function greet(event) {
   //   event.preventDefault();
@@ -73,80 +75,80 @@
     user = verifiedUser;
   }
 
-  async function fetch_story(event) {
-    event.preventDefault();
-    story = await invoke("fetch_story", { id:storyId });
-  }
+  // async function fetch_story(event) {
+  //   event.preventDefault();
+  //   story = await invoke("fetch_story", { id:storyId });
+  // }
 
-  async function get_sokstories_name_and_id(event) {
-    event.preventDefault();
-    name = await invoke("get_sokstories_name_and_id", { blubber});
-  }
+  // async function get_sokstories_name_and_id(event) {
+  //   event.preventDefault();
+  //   name = await invoke("get_sokstories_name_and_id", { blubber});
+  // }
 
-  async function request_token(event) {
-    event.preventDefault();
-    code = await invoke("request_token", { requestNew:"no" });
-  }
+  // async function request_token(event) {
+  //   event.preventDefault();
+  //   code = await invoke("request_token", { requestNew:"no" });
+  // }
 
-  async function request_new_token(event) {
-    event.preventDefault();
-    code = await invoke("request_token", { requestNew:"yes" });
-  }
+  // async function request_new_token(event) {
+  //   event.preventDefault();
+  //   code = await invoke("request_token", { requestNew:"yes" });
+  // }
 
-  async function init_save_folder(event) {
-    event.preventDefault();
-    save = await invoke("init_save_folder");
-  }
+  // async function init_save_folder(event) {
+  //   event.preventDefault();
+  //   save = await invoke("init_save_folder");
+  // }
 
-  async function request_verification(event) {
-    event.preventDefault();
-    verified = await invoke("request_verification");
-  }
+  // async function request_verification(event) {
+  //   event.preventDefault();
+  //   verified = await invoke("request_verification");
+  // }
 
-  async function fetch_stories_by_recency(event) {
-    event.preventDefault();
-    stories = await invoke("fetch_stories_by_recency", {min:1, max:Number(max)});
-  }
+  // async function fetch_stories_by_recency(event) {
+  //   event.preventDefault();
+  //   stories = await invoke("fetch_stories_by_recency", {min:1, max:Number(max)});
+  // }
 
-  async function create_category(event) {
-    event.preventDefault();
-    category_success = await invoke("create_category", {name:category_name})
-  }
+  // async function create_category(event) {
+  //   event.preventDefault();
+  //   category_success = await invoke("create_category", {name:category_name})
+  // }
 
-  async function add_story_to_category(event) {
-    event.preventDefault();
-    add_to_story_success = await invoke("add_story_to_category", {categoryName:"varken", story:story_to_category});
-  }
+  // async function add_story_to_category(event) {
+  //   event.preventDefault();
+  //   add_to_story_success = await invoke("add_story_to_category", {categoryName:"varken", story:story_to_category});
+  // }
 
-  async function remove_story_from_category(event) {
-    event.preventDefault();
-    remove_story_success = await invoke("remove_story_from_category", {categoryName:"varken", story:story_from_category});
-  }
+  // async function remove_story_from_category(event) {
+  //   event.preventDefault();
+  //   remove_story_success = await invoke("remove_story_from_category", {categoryName:"varken", story:story_from_category});
+  // }
 
-  async function remove_category(event) {
-    event.preventDefault();
-    category_remove_success = await invoke("remove_category", {name:category_to_remove});
-  }
+  // async function remove_category(event) {
+  //   event.preventDefault();
+  //   category_remove_success = await invoke("remove_category", {name:category_to_remove});
+  // }
 
-  async function fetch_stories_by_name(event) {
-    event.preventDefault();
-    story_name_result = await invoke("fetch_stories_by_name", {name:story_name});
-  }
+  // async function fetch_stories_by_name(event) {
+  //   event.preventDefault();
+  //   story_name_result = await invoke("fetch_stories_by_name", {name:story_name});
+  // }
 
-  async function fetch_makers_by_name(event) {
-    event.preventDefault();
-    maker_name_result = await invoke("fetch_makers_by_name", {name:maker_name})
-  }
+  // async function fetch_makers_by_name(event) {
+  //   event.preventDefault();
+  //   maker_name_result = await invoke("fetch_makers_by_name", {name:maker_name})
+  // }
 
-  async function post_comment(event) {
-    event.preventDefault();
-    comment_result = await invoke("post_comment", {comment:comment, storyId:"QBVL"})
-  }
+  // async function post_comment(event) {
+  //   event.preventDefault();
+  //   comment_result = await invoke("post_comment", {comment:comment, storyId:"QBVL"})
+  // }
 
-  async function fetch_comments(event) {
-    event.preventDefault();
-    comments = await invoke("fetch_comments", {storyId:story_to_get_comments_from})
-  }
+  // async function fetch_comments(event) {
+  //   event.preventDefault();
+  //   comments = await invoke("fetch_comments", {storyId:story_to_get_comments_from})
+  // }
 </script>
 
 <style>
@@ -272,10 +274,13 @@ button {
 
 
 <main class="container">
-  <p> user:{user}</p>
   {#if currentPage === "login"}
   <Login onSetPage={setPage} onSetUser={setUser}></Login>
+  {:else if currentPage === "main"}
+  <p> user:{user}</p>
+  <Categories></Categories>
   {:else if currentPage === "test"}
+  <p> test</p>
   <!-- <iframe src="https://sok-stories.com/?QBVL?embed?r?c" width='560' height='420'></iframe> -->
 
   <!-- <form class="row" onsubmit={greet}>
@@ -283,11 +288,11 @@ button {
     <button type="submit">Greet</button>
   </form>
   <p>{greetMsg}</p> -->
-  <form class="row" onsubmit={fetch_story}>
+  <!-- <form class="row" onsubmit={fetch_story}>
     <input placeholder="zoek een story..." bind:value={storyId} />
     <button type="submit">zoeken</button>
   </form>
-  <p>story: {story}</p>
+  <p>story: {story}</p> -->
 
   <!-- <form class="row" onsubmit={test_story}>
     <input placeholder="zoek een story..." bind:value={testStoryId} />
@@ -295,7 +300,7 @@ button {
   </form>
   <p>deze story is gemaakt door: {testStory}</p> -->
 
-  <form class="row" onsubmit={get_sokstories_name_and_id}>
+  <!-- <form class="row" onsubmit={get_sokstories_name_and_id}>
     <input placeholder="blubber" bind:value={blubber} />
     <button type="submit">pak naam</button>
   </form>
@@ -377,6 +382,6 @@ button {
     <input placeholder="krijg comments van..." bind:value={story_to_get_comments_from} />
     <button type="submit">haal comments op</button>
   </form>
-  <p>comments: {comments}</p>
+  <p>comments: {comments}</p> -->
   {/if}
 </main>

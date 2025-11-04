@@ -21,12 +21,12 @@
 
     function continueAsGuest() {
         name = "";
-        onSetPage("test");
+        onSetPage("main");
         onSetUser(name);
     }
 
     function continueAsVerifiedAccount() {
-        onSetPage("test");
+        onSetPage("main");
         onSetUser(name);
     }
 
@@ -43,6 +43,7 @@
     }
 
     async function verify() {
+        verification = "";
         await getTokenAndName();
         if (token === "key not found") {
             return;
@@ -109,8 +110,8 @@
 
 <button on:click={continueAsGuest}> Continue as guest</button>
 
-<p>verification: {verification}</p>
+<!-- <p>verification: {verification}</p>
 <p>token: {token}</p>
 <p>name and id: {name_and_id}</p>
 <p>name: {name}</p>
-<p>code: {code}</p>
+<p>code: {code}</p> -->
