@@ -32,13 +32,13 @@
 
     async function generateNewToken(event) {
         event.preventDefault();
-        code = await invoke("request_token", {request_new:"no"});
+        code = await invoke("request_token", {requestNew:"no"});
         await getTokenAndName();
     }
 
     async function forceNewToken(event) {
         event.preventDefault();
-        code = await invoke("request_token", {request_new:"yes"});
+        code = await invoke("request_token", {requestNew:"yes"});
         await getTokenAndName();
     }
 
