@@ -25,6 +25,13 @@
         removeResult = await invoke("remove_category", {name});
         await getCategories();
     }
+
+    async function RemoveStoryFromCategory(categoryName, story) {
+        removeStoryResult = await invoke("remove_story_from_category", {category_name:categoryName, story});
+        await getCategories();
+    }
+
+
 </script>
 
 <style>
@@ -39,18 +46,19 @@
         <button type="submit">Create</button>
     </form>
 
-    <p>{categories}</p>
+    <!-- <p>{categories}</p> -->
 
     {#each categories as category}
     <p>{category["name"]}</p>
-    <button onclick={removeCategory(category["name"])}> Remove</button>
+    <button onclick={removeCategory(category["name"])}> Remove category</button>
     <hr>
 
     {#each category["stories"] as story}
     <p>{story}</p>
+    <button onclick={RemoveStoryFromCategory(category["name"], story)}> Remove story</button>
 
     {/each}
     {/each}
-    <p>{result}</p>
-    <p>{removeResult}</p>
+    <!-- <p>{result}</p>
+    <p>{removeResult}</p> -->
 </main>
