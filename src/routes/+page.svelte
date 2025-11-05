@@ -4,6 +4,7 @@
 
   import Login from "$lib/Login.svelte";
   import Categories from "$lib/Categories.svelte";
+  import Search from "$lib/Search.svelte";
 
   let currentPage = $state("login");
   let user = $state("");
@@ -144,6 +145,7 @@ button {
   {:else if currentPage === "main"}
   <p> user:{user}</p>
   <Categories></Categories>
+  <Search></Search>
   {:else if currentPage === "test"}
   <p> test</p>
   {/if}
