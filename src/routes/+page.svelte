@@ -5,6 +5,7 @@
   import Login from "$lib/Login.svelte";
   import Categories from "$lib/Categories.svelte";
   import Search from "$lib/Search.svelte";
+  import Story from "$lib/Story.svelte";
 
   let currentPage = $state("login");
   let user = $state("");
@@ -143,9 +144,10 @@ button {
   {#if currentPage === "login"}
   <Login onSetPage={setPage} onSetUser={setUser}></Login>
   {:else if currentPage === "main"}
-  <p> user:{user}</p>
+  <!-- <p> user:{user}</p>
   <Categories></Categories>
-  <Search></Search>
+  <Search></Search> -->
+  <Story></Story>
   {:else if currentPage === "test"}
   <p> test</p>
   {/if}
