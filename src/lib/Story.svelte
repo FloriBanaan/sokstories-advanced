@@ -70,10 +70,13 @@
             console.log("not draggable!");
             return;
         }
-        dragging = true;
-        draggingObject = index;
-        xDeviation = instances[currentRoom][draggingObject]["posx"] - $mouse.x;
-        yDeviation = instances[currentRoom][draggingObject]["posy"] - $mouse.y;
+        if (checkIfTransparent(object, index)) {
+            console.log("hoi");
+            dragging = true;
+            draggingObject = index;
+            xDeviation = instances[currentRoom][draggingObject]["posx"] - $mouse.x;
+            yDeviation = instances[currentRoom][draggingObject]["posy"] - $mouse.y;
+        }
     }
 
     function stopDragging(object, index) {
@@ -86,6 +89,67 @@
             instances[currentRoom][draggingObject]["posx"] = $mouse.x + xDeviation;
             instances[currentRoom][draggingObject]["posy"] = $mouse.y + yDeviation;
         }
+    }
+
+    function checkIfTransparent(object, index) {
+        // pixel-perfect check (w/ radius)
+        var r = 5;
+        var mx = $mouse.x - (instances[currentRoom][index]["posx"] - 85);
+        var my = $mouse.y - (instances[currentRoom][index]["posy"] - 35);
+        console.log("mousex: " + $mouse.x);
+        console.log("mousey: " + $mouse.y);
+        console.log("spritex: " + instances[currentRoom][index]["posx"] - 100);
+        console.log("spritey: " + instances[currentRoom][index]["posy"] - 100);
+        console.log("mx: " + mx);
+        console.log("my: " + my);
+        // console.log(mx);
+        // console.log(my);
+        for (var xxx = mx -r; xxx < mx + r; xxx++) {
+            for (var yyy = my -r; yyy < my + r; yyy++)
+            {
+                // console.log("banaan");
+                // console.log(story["objects"][object["id"]]["img"]);
+                // console.log(xxx);
+                // console.log(yyy);
+                if (check_pixel(story["objects"][object["id"]]["img"], xxx, yyy))
+                {
+                    console.log("nog steeds niet transparant");
+                    return true;
+                    // if (!object_is_static[object[current_room][i]])
+                    //     hover_target = i;
+                    // else
+                    //     hover_target_static = i;
+                    // xxx = 99999;
+                    // yyy = 99999;
+                }
+            }
+        }
+        return false;
+    }
+    
+    function check_pixel(spriteBase64, x, y) {
+
+        const image = new Image();
+        image.src = "data:image/png;base64," + spriteBase64;
+
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = image.width;
+        canvas.height = image.height;
+
+        ctx.drawImage(image, 0, 0);
+
+        const pixel = ctx.getImageData(Math.floor(x), Math.floor(y), 1, 1).data;
+        // pixel = [r, g, b, a]
+        // resolve(pixel);
+        const [r, g, b, a] = pixel;
+        console.log(`R:${r} G:${g} B:${b} A:${a}`);
+        if (a > 1) {
+            console.log("niet transparant");
+            return true;
+        }
+        return false;
+
     }
 
 </script>
