@@ -3,10 +3,18 @@
 
     import { invoke } from "@tauri-apps/api/core";
     import { onMount } from "svelte";
+    import { mousePosition } from './store.js';
 
     let storyString = "";
     let story = [];
+    let instances = [];
     let found = false;
+    let currentRoom = 0;
+    let dragging = false;
+    let draggingObject = -1;
+    let xDeviation = 0;
+    let yDeviation = 0;
+    let mouse = mousePosition();
     
     //
     // icon: object_idx
@@ -40,10 +48,46 @@
     //
 
     onMount(async () => {
+        window.addEventListener('mousemove', onMove);
         storyString = await invoke("fetch_story", {id:"JNLA"});
         story = JSON.parse(storyString);
+        await initInstances();
         found = true;
     });
+
+    function initInstances() {
+        for (let i=0; i < story["rooms"].length; i++) {
+            instances.push([]);
+            for (let j=0; j < story["rooms"][i]["objects"].length; j++) {
+                let object = story["rooms"][i]["objects"][j];
+                instances[i].push({"id":object["id"], "posx":object["posx"], "posy":object.posy})
+            }
+        }
+    }
+
+    function dragObject(object, index) {
+        if (story["objects"][object["id"]]["mobility"] === "static") {
+            console.log("not draggable!");
+            return;
+        }
+        dragging = true;
+        draggingObject = index;
+        xDeviation = instances[currentRoom][draggingObject]["posx"] - $mouse.x;
+        yDeviation = instances[currentRoom][draggingObject]["posy"] - $mouse.y;
+    }
+
+    function stopDragging(object, index) {
+        dragging = false;
+        draggingObject = -1;
+    }
+
+    function onMove(event) {
+        if(dragging) {
+            instances[currentRoom][draggingObject]["posx"] = $mouse.x + xDeviation;
+            instances[currentRoom][draggingObject]["posy"] = $mouse.y + yDeviation;
+        }
+    }
+
 </script>
 
 <style>
@@ -64,11 +108,11 @@
 </style>
 
 <main>
-    <iframe src='https://sok-stories.com/?JNLA?embed' width='200' height='200'></iframe>
+    <!-- <iframe src='https://sok-stories.com/?JNLA?embed' width='200' height='200'></iframe> -->
     <div id="storyCanvas">
         {#if found}
-        {#each story["rooms"][0]["objects"] as object}
-        <img class="object" style="left: {object["posx"] - 100}px; top: {object["posy"] - 100}px;" src={`data:image/png;base64,${story["objects"][object["id"]]["img"]}`} alt="object">
+        {#each instances[currentRoom] as object, index}
+        <img onmouseup={() => stopDragging(object, index)} onmousedown={() => dragObject(object, index)} class="object" style="left: {object["posx"] - 100}px; top: {object["posy"] - 100}px;" src={`data:image/png;base64,${story["objects"][object["id"]]["img"]}`} alt="object" draggable="false">
         <!-- <img class="object" style="left: 0px; top: 0px;" src={`data:image/png;base64,${story["objects"][object["id"]]["img"]}`} alt="object"> -->
         {/each}
         {/if}
