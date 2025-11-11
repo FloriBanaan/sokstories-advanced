@@ -15,6 +15,9 @@
     let xDeviation = 0;
     let yDeviation = 0;
     let mouse = mousePosition();
+
+    let canvas;
+    let ctx;
     
     //
     // icon: object_idx
@@ -47,13 +50,19 @@
     //      goto: "next"/"prev"/room_idx
     //
 
-    onMount(async () => {
+    onMount(() => {
+        ctx = canvas.getContext("2d");
         window.addEventListener('mousemove', onMove);
+        fetchStory();
+        console.log("klaar");
+    });
+
+    async function fetchStory() {
         storyString = await invoke("fetch_story", {id:"JNLA"});
         story = JSON.parse(storyString);
         await initInstances();
         found = true;
-    });
+    }
 
     function initInstances() {
         for (let i=0; i < story["rooms"].length; i++) {
@@ -62,6 +71,24 @@
                 let object = story["rooms"][i]["objects"][j];
                 instances[i].push({"id":object["id"], "posx":object["posx"], "posy":object.posy})
             }
+        }
+    }
+
+    function drawObjectsToCanvas() {
+        console.log("hoi");
+        for (let i=0; i < instances[currentRoom].length; i++) {
+            console.log(i);
+            let object = instances[currentRoom][i];
+            let objectId = object["id"];
+            let objectImg = "data:image/png;base64," + story["objects"][objectId]["img"];
+            console.log(objectImg);
+            var image = new Image();
+            image.src = objectImg;
+            // console.log(image);
+            console.log(object["posx"]);
+            console.log(object["posy"]);
+            ctx.drawImage(image, object["posx"] -100, object["posy"] -100);
+            // console.log(ctx);
         }
     }
 
@@ -157,30 +184,22 @@
 <style>
     #storyCanvas {
         position: relative;
-        width: 700px;
-        height: 500px;
         border: 4px solid black;
+        /* background-color: blue; */
+    }
+    #canvasContainer {
         /* background-color: red; */
-    }
-    #topleft {
-        left: 0;
-        top: 0;
-    }
-    .object {
-        position: absolute;
     }
 </style>
 
 <main>
     <!-- <iframe src='https://sok-stories.com/?JNLA?embed' width='200' height='200'></iframe> -->
-    <div id="storyCanvas">
-        {#if found}
-        {#each instances[currentRoom] as object, index}
-        <img onmouseup={() => stopDragging(object, index)} onmousedown={() => dragObject(object, index)} class="object" style="left: {object["posx"] - 100}px; top: {object["posy"] - 100}px;" src={`data:image/png;base64,${story["objects"][object["id"]]["img"]}`} alt="object" draggable="false">
-        <!-- <img class="object" style="left: 0px; top: 0px;" src={`data:image/png;base64,${story["objects"][object["id"]]["img"]}`} alt="object"> -->
-        {/each}
-        {/if}
+    <div id="canvasContainer">
+        <!-- {#if found} -->
+        <canvas bind:this={canvas} id="storyCanvas" width="700" height="500"></canvas>
+        <!-- {/if} -->
     </div>
+    <button onclick={drawObjectsToCanvas}>draw objects</button>
     <p>{storyString}</p>
     <p>{story}</p>
     <p>{story["unique_id"]}</p>
