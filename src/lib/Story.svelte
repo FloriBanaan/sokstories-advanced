@@ -50,17 +50,25 @@
     //      goto: "next"/"prev"/room_idx
     //
 
+    $: if (found) {
+        console.log(story);
+        initStory();
+    }
+
     onMount(() => {
         ctx = canvas.getContext("2d");
         window.addEventListener('mousemove', onMove);
         fetchStory();
-        console.log("klaar");
+        // console.log("klaar");
+        // console.log(story);
     });
 
     async function fetchStory() {
+        // console.log("even fetchen");
         storyString = await invoke("fetch_story", {id:"JNLA"});
         story = JSON.parse(storyString);
-        await initInstances();
+        // console.log("klaar met fetchen");
+        // console.log(story);
         found = true;
     }
 
@@ -74,22 +82,40 @@
         }
     }
 
+    function loadSprites() {
+        console.log("even de sprites inladen");
+        console.log(story);
+        console.log(story["objects"]);
+        for (let i=0; i < story["objects"].length; i++) {
+            console.log("we zitten in de loop");
+            let spriteBase64 = "data:image/png;base64," + story["objects"][i]["img"];
+            var sprite = new Image();
+            sprite.src = spriteBase64;
+            story["objects"][i]["img"] = sprite;
+            // console.log(story["objects"][i]["img"]);
+        }
+    }
+
     function drawObjectsToCanvas() {
         console.log("hoi");
         for (let i=0; i < instances[currentRoom].length; i++) {
             console.log(i);
             let object = instances[currentRoom][i];
             let objectId = object["id"];
-            let objectImg = "data:image/png;base64," + story["objects"][objectId]["img"];
-            console.log(objectImg);
-            var image = new Image();
-            image.src = objectImg;
+            let objectSprite = story["objects"][objectId]["img"];
+            console.log(objectSprite);
             // console.log(image);
             console.log(object["posx"]);
             console.log(object["posy"]);
-            ctx.drawImage(image, object["posx"] -100, object["posy"] -100);
+            ctx.drawImage(objectSprite, object["posx"] -100, object["posy"] -100);
             // console.log(ctx);
         }
+    }
+
+    function initStory() {
+        initInstances();
+        loadSprites();
+        drawObjectsToCanvas();
     }
 
     function dragObject(object, index) {
@@ -199,7 +225,6 @@
         <canvas bind:this={canvas} id="storyCanvas" width="700" height="500"></canvas>
         <!-- {/if} -->
     </div>
-    <button onclick={drawObjectsToCanvas}>draw objects</button>
     <p>{storyString}</p>
     <p>{story}</p>
     <p>{story["unique_id"]}</p>
