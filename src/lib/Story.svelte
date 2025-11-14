@@ -5,6 +5,7 @@
     import { onMount } from "svelte";
     import { mousePosition } from './store.js';
     import { passive } from "svelte/legacy";
+    import Page from "../routes/+page.svelte";
 
     let storyString = "";
     let story = [];
@@ -12,13 +13,14 @@
     let found = false;
     let currentRoom = 0;
     let dragging = false;
-    let draggingObject = -1;
+    let selectedObject = -1;
     let xDeviation = 0;
     let yDeviation = 0;
     let mouse = mousePosition();
     let clicking = false;
     let tapTimer = 0;
-	let duration = 250;
+	let tapDuration = 250;
+    let empty = -4;
 
     let canvas;
     let ctx;
@@ -58,8 +60,8 @@
         initStory();
     }
 
-    $: if (tapTimer === duration) {
-        console.log("taptimer klaar");
+    $: if (tapTimer === tapDuration) {
+        // console.log("taptimer klaar");
         clicking = false;
     }
 
@@ -72,7 +74,7 @@
 		let frame = requestAnimationFrame(function update(time) {
 			frame = requestAnimationFrame(update);
 
-			tapTimer += Math.min(time - last_time, duration - tapTimer);
+			tapTimer += Math.min(time - last_time, tapDuration - tapTimer);
 			last_time = time;
 		});
     });
@@ -151,38 +153,86 @@
         drawObjectsToCanvas();
     }
 
-    function dragObject() {
+    function selectObject() {
         clicking = true;
         tapTimer = 0;
         for (let i=0; i < instances[currentRoom].length; i++) {
             let objectId = instances[currentRoom][i]["id"];
-            if (story["objects"][objectId]["mobility"] === "movable") {
-                let xp = instances[currentRoom][i]["posx"];
-                let yp = instances[currentRoom][i]["posy"];
-                let object = story["objects"][objectId];
-                if (mouseRelativePosition()["x"] > xp - 100 + object["bbox_left"] && mouseRelativePosition()["y"] > yp - 100 + object["bbox_top"] && mouseRelativePosition()["x"] < xp - 100 + object["bbox_right"] && mouseRelativePosition()["y"] < yp - 100 + object["bbox_bottom"]) {
-                    if (checkIfTransparent(objectId, i)) {
-                        draggingObject = i;
+            let xp = instances[currentRoom][i]["posx"];
+            let yp = instances[currentRoom][i]["posy"];
+            let object = story["objects"][objectId];
+            if (mouseRelativePosition()["x"] > xp - 100 + object["bbox_left"] && mouseRelativePosition()["y"] > yp - 100 + object["bbox_top"] && mouseRelativePosition()["x"] < xp - 100 + object["bbox_right"] && mouseRelativePosition()["y"] < yp - 100 + object["bbox_bottom"]) {
+                if (checkIfTransparent(objectId, i)) {
+                    selectedObject = i;
+                    if (story["objects"][objectId]["mobility"] === "movable") {
                         dragging = true;
-                        xDeviation = instances[currentRoom][draggingObject]["posx"] - mouseRelativePosition()["x"];
-                        yDeviation = instances[currentRoom][draggingObject]["posy"] - mouseRelativePosition()["y"];
+                        xDeviation = instances[currentRoom][selectedObject]["posx"] - mouseRelativePosition()["x"];
+                        yDeviation = instances[currentRoom][selectedObject]["posy"] - mouseRelativePosition()["y"];
                     }
                 }
             }
         }
     }
 
-    function stopDragging() {
+    function onMouseUp() {
+        if (selectedObject === -1) {
+            return;
+        }
+        if (tapTimer < tapDuration) {
+            // console.log("op tijd losgelaten");
+            console.log("geselecteerd object: " + selectedObject);
+            checkOnClickRules();
+        }
         dragging = false;
-        draggingObject = -1;
+        selectedObject = -1;
+    }
+
+    function checkOnClickRules() {
+        let objectId = instances[currentRoom][selectedObject]["id"];
+        for (let i=0; i < story["transitions"].length; i++) {
+            let transition = story["transitions"][i];
+            if ((objectId === transition["pos1"] && transition["pos2"] === empty && transition["condition"] === "click") || (objectId === transition["pos2"] && transition["pos1"] === empty && transition["condition"] === "click")) {
+                console.log("regel gevonden");
+                doTransitionRule(i);
+            }
+        }
+    }
+
+    function doTransitionRule(index) {
+        let transition = story["transitions"][index];
+        if (transition["goto"] === "next") {
+            currentRoom += 1;
+            if (currentRoom === story["rooms"].length) {
+                currentRoom = 0;
+            }
+            console.log("op naar de volgende kamer");
+        }
+        else if (transition["goto"] === "prev") {
+            currentRoom -= 1;
+            if (currentRoom < 0) {
+                currentRoom = story["rooms"].length - 1;
+            }
+            console.log("op naar de vorige kamer");
+        }
+        else if (transition["goto"] != empty) {
+            currentRoom = transition["goto"];
+        }
+        else {
+            return;
+        }
+        
+        // TODO: take left/right
+
+        // console.log(currentRoom);
+        drawObjectsToCanvas();
     }
 
     function onMove(event) {
         if(dragging) {
-            instances[currentRoom][draggingObject]["posx"] = mouseRelativePosition()["x"] + xDeviation;
-            instances[currentRoom][draggingObject]["posx"] = clamp(instances[currentRoom][draggingObject]["posx"], 100 - story["objects"][instances[currentRoom][draggingObject]["id"]]["bbox_left"], 700 + 100 - story["objects"][instances[currentRoom][draggingObject]["id"]]["bbox_right"]);
-            instances[currentRoom][draggingObject]["posy"] = mouseRelativePosition()["y"] + yDeviation;
-            instances[currentRoom][draggingObject]["posy"] = clamp(instances[currentRoom][draggingObject]["posy"], 100 - story["objects"][instances[currentRoom][draggingObject]["id"]]["bbox_top"], 500 + 100 - story["objects"][instances[currentRoom][draggingObject]["id"]]["bbox_bottom"]);
+            instances[currentRoom][selectedObject]["posx"] = mouseRelativePosition()["x"] + xDeviation;
+            instances[currentRoom][selectedObject]["posx"] = clamp(instances[currentRoom][selectedObject]["posx"], 100 - story["objects"][instances[currentRoom][selectedObject]["id"]]["bbox_left"], 700 + 100 - story["objects"][instances[currentRoom][selectedObject]["id"]]["bbox_right"]);
+            instances[currentRoom][selectedObject]["posy"] = mouseRelativePosition()["y"] + yDeviation;
+            instances[currentRoom][selectedObject]["posy"] = clamp(instances[currentRoom][selectedObject]["posy"], 100 - story["objects"][instances[currentRoom][selectedObject]["id"]]["bbox_top"], 500 + 100 - story["objects"][instances[currentRoom][selectedObject]["id"]]["bbox_bottom"]);
             drawObjectsToCanvas();
         }
     }
@@ -229,13 +279,13 @@
     }
 </style>
 
-<svelte:window onmouseup={stopDragging} onmousemove={onMove} />
+<svelte:window onmouseup={onMouseUp} onmousemove={onMove} />
 
 <main>
     
     <!-- <iframe src='https://sok-stories.com/?JNLA?embed' width='200' height='200'></iframe> -->
     <div id="canvasContainer">
-        <canvas bind:this={canvas} id="storyCanvas" width="700" height="500" onmousedown={dragObject}></canvas>
+        <canvas bind:this={canvas} id="storyCanvas" width="700" height="500" onmousedown={selectObject}></canvas>
     </div>
     <p>{storyString}</p>
     <p>{story}</p>
