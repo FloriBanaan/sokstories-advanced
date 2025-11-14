@@ -137,41 +137,21 @@
     function dragObject() {
         console.log("start dragging");
         for (let i=0; i < instances[currentRoom].length; i++) {
-            let xp = instances[currentRoom][i]["posx"];
-            let yp = instances[currentRoom][i]["posy"];
             let objectId = instances[currentRoom][i]["id"];
-            let object = story["objects"][objectId];
-            if (mouseRelativePosition()["x"] > xp - 100 + object["bbox_left"] && mouseRelativePosition()["y"] > yp - 100 + object["bbox_top"] && mouseRelativePosition()["x"] < xp - 100 + object["bbox_right"] && mouseRelativePosition()["y"] < yp - 100 + object["bbox_bottom"]) {
-                // if (object["mobility"] === "static") {
-                //     console.log("not draggable!");
-                //     console.log(i);
-                //     // return;
-                // }
-                // else {
-                if (checkIfTransparent(objectId, i)) {
-                    // return;
-                    if (story["objects"][objectId]["mobility"] === "movable") {
+            if (story["objects"][objectId]["mobility"] === "movable") {
+                let xp = instances[currentRoom][i]["posx"];
+                let yp = instances[currentRoom][i]["posy"];
+                let object = story["objects"][objectId];
+                if (mouseRelativePosition()["x"] > xp - 100 + object["bbox_left"] && mouseRelativePosition()["y"] > yp - 100 + object["bbox_top"] && mouseRelativePosition()["x"] < xp - 100 + object["bbox_right"] && mouseRelativePosition()["y"] < yp - 100 + object["bbox_bottom"]) {
+                    if (checkIfTransparent(objectId, i)) {
                         draggingObject = i;
                         dragging = true;
                         xDeviation = instances[currentRoom][draggingObject]["posx"] - mouseRelativePosition()["x"];
                         yDeviation = instances[currentRoom][draggingObject]["posy"] - mouseRelativePosition()["y"];
                     }
-                    else {
-                        console.log("not draggable");
-                        draggingObject = -1;
-                        dragging = false;
-                    }
                 }
             }
         }
-        // console.log("niet gevonden");
-
-        // if (checkIfTransparent(object, index)) {
-        //     console.log("hoi");
-        //     dragging = true;
-        //     draggingObject = index;
-
-        // }
     }
 
     function stopDragging() {
