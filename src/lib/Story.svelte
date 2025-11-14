@@ -57,7 +57,6 @@
 
     onMount(() => {
         ctx = canvas.getContext("2d", {willReadFrequently:true});
-        window.addEventListener('mousemove', onMove);
         fetchStory();
     });
 
@@ -120,6 +119,7 @@
     }
 
     function drawObjectsToCanvas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         for (let i=0; i < instances[currentRoom].length; i++) {
             let object = instances[currentRoom][i];
             let objectId = object["id"];
@@ -135,21 +135,13 @@
     }
 
     function dragObject() {
+        console.log("start dragging");
         for (let i=0; i < instances[currentRoom].length; i++) {
             let xp = instances[currentRoom][i]["posx"];
             let yp = instances[currentRoom][i]["posy"];
             let objectId = instances[currentRoom][i]["id"];
             let object = story["objects"][objectId];
             if (mouseRelativePosition()["x"] > xp - 100 + object["bbox_left"] && mouseRelativePosition()["y"] > yp - 100 + object["bbox_top"] && mouseRelativePosition()["x"] < xp - 100 + object["bbox_right"] && mouseRelativePosition()["y"] < yp - 100 + object["bbox_bottom"]) {
-                ctx.rect(xp - 100 + object["bbox_left"], yp - 100 + object["bbox_top"], (xp - 100 + object["bbox_right"]) - (xp - 100 + object["bbox_left"]), (yp - 100 + object["bbox_bottom"]) - (yp - 100 + object["bbox_top"]));
-                ctx.stroke();
-                // for (var pixel of Object.keys(object["mask"])) {
-                //     // console.log(pixel);
-                //     if (object["mask"][pixel]) {
-                //         ctx.rect(Number(pixel), Number(pixel), 1, 1);
-                //         ctx.stroke();
-                //     }
-                // }
                 // if (object["mobility"] === "static") {
                 //     console.log("not draggable!");
                 //     console.log(i);
@@ -157,9 +149,19 @@
                 // }
                 // else {
                 if (checkIfTransparent(objectId, i)) {
-                    return;
+                    // return;
+                    if (story["objects"][objectId]["mobility"] === "movable") {
+                        draggingObject = i;
+                        dragging = true;
+                        xDeviation = instances[currentRoom][draggingObject]["posx"] - mouseRelativePosition()["x"];
+                        yDeviation = instances[currentRoom][draggingObject]["posy"] - mouseRelativePosition()["y"];
+                    }
+                    else {
+                        console.log("not draggable");
+                        draggingObject = -1;
+                        dragging = false;
+                    }
                 }
-                
             }
         }
         // console.log("niet gevonden");
@@ -168,26 +170,27 @@
         //     console.log("hoi");
         //     dragging = true;
         //     draggingObject = index;
-        //     xDeviation = instances[currentRoom][draggingObject]["posx"] - $mouse.x;
-        //     yDeviation = instances[currentRoom][draggingObject]["posy"] - $mouse.y;
+
         // }
     }
 
-    function stopDragging(object, index) {
+    function stopDragging() {
         dragging = false;
         draggingObject = -1;
+        console.log("stop dragging");
     }
 
     function onMove(event) {
         if(dragging) {
-            instances[currentRoom][draggingObject]["posx"] = $mouse.x + xDeviation;
-            instances[currentRoom][draggingObject]["posy"] = $mouse.y + yDeviation;
+            instances[currentRoom][draggingObject]["posx"] = mouseRelativePosition()["x"] + xDeviation;
+            instances[currentRoom][draggingObject]["posy"] = mouseRelativePosition()["y"] + yDeviation;
+            drawObjectsToCanvas();
         }
     }
 
     function checkIfTransparent(objectId, index) {
-        console.log("object geklikt");
-        console.log(index);
+        // console.log("object geklikt");
+        // console.log(index);
         var r = 10;
         var mx = mouseRelativePosition()["x"] - (instances[currentRoom][index]["posx"] - 100);
         var my = mouseRelativePosition()["y"] - (instances[currentRoom][index]["posy"] - 100);
@@ -234,7 +237,10 @@
     }
 </style>
 
+<svelte:window onmouseup={stopDragging} onmousemove={onMove} />
+
 <main>
+    
     <!-- <iframe src='https://sok-stories.com/?JNLA?embed' width='200' height='200'></iframe> -->
     <div id="canvasContainer">
         <canvas bind:this={canvas} id="storyCanvas" width="700" height="500" onmousedown={dragObject}></canvas>
