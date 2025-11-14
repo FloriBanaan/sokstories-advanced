@@ -52,7 +52,6 @@
     //
 
     $: if (found) {
-        // console.log(story);
         initStory();
     }
 
@@ -60,16 +59,11 @@
         ctx = canvas.getContext("2d", {willReadFrequently:true});
         window.addEventListener('mousemove', onMove);
         fetchStory();
-        // console.log("klaar");
-        // console.log(story);
     });
 
     async function fetchStory() {
-        // console.log("even fetchen");
         storyString = await invoke("fetch_story", {id:"JNLA"});
         story = JSON.parse(storyString);
-        // console.log("klaar met fetchen");
-        // console.log(story);
         found = true;
     }
 
@@ -85,15 +79,11 @@
 
     function loadSprites() {
         console.log("even de sprites inladen");
-        // console.log(story);
-        // console.log(story["objects"]);
         for (let i=0; i < story["objects"].length; i++) {
-            // console.log("we zitten in de loop");
             let spriteBase64 = "data:image/png;base64," + story["objects"][i]["img"];
             var sprite = new Image();
             sprite.src = spriteBase64;
             story["objects"][i]["img"] = sprite;
-            // console.log(story["objects"][i]["img"]);
             sprite.onload = function() {
                 calculateHitboxes(i, sprite);
             };
@@ -107,27 +97,15 @@
         ctx.drawImage(story["objects"][index]["img"], 0, 0);
         var imageData = ctx.getImageData(0, 0, 200, 200);
         story["objects"][index]["mask"] = {};
-        // image.mask = [];
-        // image.bbox_left = image.width;
-        // image.bbox_top = image.height;
-        // image.bbox_right = 0;
-        // image.bbox_bottom = 0;
         story["objects"][index]["bbox_left"] = image.width;
         story["objects"][index]["bbox_top"] = image.height;
         story["objects"][index]["bbox_right"] = 0;
         story["objects"][index]["bbox_bottom"] = 0;
-        // console.log(index);
         
         for (var xp = 0; xp < image.width; xp++)
             for (var yp = 0; yp < image.height; yp++)
             {
                 var i = xp * 4 + yp * image.width * 4;
-
-                // console.log("varken");
-                // console.log("hoi");
-
-                // console.log(imageData.data[i + 3]);
-
                 if (imageData.data[i + 3] > 10)
                 {
                     story["objects"][index]["mask"][xp + yp * image.width] = true;
@@ -139,32 +117,14 @@
                 else
                     story["objects"][index]["mask"][xp + yp * image.width] = false;
             }
-        // console.log(image.bbox_left);
-        // story["objects"][index]["img"] = image;
-        
-
-        
-        // loaded_objects++;
-        // if (loaded_objects == objects - failed_loads)
-        // {
-        //     calculate_rule_matrix();
-        //     loop_interval = setInterval(loop, 1000 / fps);
-        // }
     }
 
     function drawObjectsToCanvas() {
-        // console.log("hoi");
         for (let i=0; i < instances[currentRoom].length; i++) {
-            // console.log(i);
             let object = instances[currentRoom][i];
             let objectId = object["id"];
             let objectSprite = story["objects"][objectId]["img"];
-            // console.log(objectSprite);
-            // console.log(image);
-            // console.log(object["posx"]);
-            // console.log(object["posy"]);
             ctx.drawImage(objectSprite, object["posx"] -100, object["posy"] -100);
-            // console.log(ctx);
         }
     }
 
@@ -175,26 +135,11 @@
     }
 
     function dragObject() {
-        // console.log(story["objects"][0]["img"]);
-        // console.log("drag");
         for (let i=0; i < instances[currentRoom].length; i++) {
             let xp = instances[currentRoom][i]["posx"];
             let yp = instances[currentRoom][i]["posy"];
-            // console.log("banaan");
             let objectId = instances[currentRoom][i]["id"];
             let object = story["objects"][objectId];
-            // if (i === 0) {
-                // console.log("-------------------------------------");
-                // console.log("mousex: " + $mouse.x);
-                // console.log("mousey: " + $mouse.y);
-                // console.log("xp: " + xp);
-                // console.log("yp: " + yp);
-                // console.log("bbox_left: " + object["bbox_left"]);
-                // console.log("bbox_top: " + object["bbox_top"]);
-                // console.log("bbox_right: " + object["bbox_right"]);
-                // console.log("bbox_bottom: " + object["bbox_bottom"]);
-                // console.log("--------------------------------------");
-            // }
             if (mouseRelativePosition()["x"] > xp - 100 + object["bbox_left"] && mouseRelativePosition()["y"] > yp - 100 + object["bbox_top"] && mouseRelativePosition()["x"] < xp - 100 + object["bbox_right"] && mouseRelativePosition()["y"] < yp - 100 + object["bbox_bottom"]) {
                 ctx.rect(xp - 100 + object["bbox_left"], yp - 100 + object["bbox_top"], (xp - 100 + object["bbox_right"]) - (xp - 100 + object["bbox_left"]), (yp - 100 + object["bbox_bottom"]) - (yp - 100 + object["bbox_top"]));
                 ctx.stroke();
@@ -211,11 +156,9 @@
                 //     // return;
                 // }
                 // else {
-                    if (checkIfTransparent(objectId, i)) {
-                        // console.log(i);
-                        return;
-                    }
-                // }
+                if (checkIfTransparent(objectId, i)) {
+                    return;
+                }
                 
             }
         }
@@ -245,28 +188,12 @@
     function checkIfTransparent(objectId, index) {
         console.log("object geklikt");
         console.log(index);
-        // pixel-perfect check (w/ radius)
         var r = 10;
         var mx = mouseRelativePosition()["x"] - (instances[currentRoom][index]["posx"] - 100);
         var my = mouseRelativePosition()["y"] - (instances[currentRoom][index]["posy"] - 100);
-        // console.log("mousex: " + $mouse.x);
-        // console.log("mousey: " + $mouse.y);
-        // console.log("spritex: " + (instances[currentRoom][index]["posx"] - 100));
-        // console.log("spritey: " + (instances[currentRoom][index]["posy"] - 100));
-        // console.log("mx: " + mx);
-        // console.log("my: " + my);
-        // console.log(mx);
-        // console.log(my);
         for (var xxx = mx -r; xxx < mx + r; xxx++) {
             for (var yyy = my -r; yyy < my + r; yyy++)
             {
-                // console.log(story["objects"][object["id"]]["img"]);
-                // console.log(xxx);
-                // console.log(yyy);
-                // console.log("hier komt even het belangrijke deel");
-                // console.log([object["id"]]);
-                // console.log(story["objects"][0]["img"]);
-                // console.log(story["objects"][Number(object["id"])]["img"]);
                 if (check_pixel(objectId, xxx, yyy))
                 {
                     console.log("draggable");
@@ -285,33 +212,7 @@
     }
     
     function check_pixel(index, x, y) {
-
-        // console.log("index: " + index);
-        // console.log(index);
-
         return story["objects"][Number(index)]["mask"][Math.floor(x) + Math.floor(y) * story["objects"][Number(index)]["img"].width];
-
-        // const image = new Image();
-        // image.src = "data:image/png;base64," + spriteBase64;
-
-        // const canvas = document.createElement("canvas");
-        // const ctx = canvas.getContext("2d");
-        // canvas.width = image.width;
-        // canvas.height = image.height;
-
-        // ctx.drawImage(image, 0, 0);
-
-        // const pixel = ctx.getImageData(Math.floor(x), Math.floor(y), 1, 1).data;
-        // // pixel = [r, g, b, a]
-        // // resolve(pixel);
-        // const [r, g, b, a] = pixel;
-        // console.log(`R:${r} G:${g} B:${b} A:${a}`);
-        // if (a > 1) {
-        //     console.log("niet transparant");
-        //     return true;
-        // }
-        // return false;
-
     }
 
     function mouseRelativePosition() {
@@ -336,9 +237,7 @@
 <main>
     <!-- <iframe src='https://sok-stories.com/?JNLA?embed' width='200' height='200'></iframe> -->
     <div id="canvasContainer">
-        <!-- {#if found} -->
         <canvas bind:this={canvas} id="storyCanvas" width="700" height="500" onmousedown={dragObject}></canvas>
-        <!-- {/if} -->
     </div>
     <p>{storyString}</p>
     <p>{story}</p>
