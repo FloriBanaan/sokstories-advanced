@@ -163,9 +163,16 @@
     function onMove(event) {
         if(dragging) {
             instances[currentRoom][draggingObject]["posx"] = mouseRelativePosition()["x"] + xDeviation;
+            instances[currentRoom][draggingObject]["posx"] = clamp(instances[currentRoom][draggingObject]["posx"], 100 - story["objects"][instances[currentRoom][draggingObject]["id"]]["bbox_left"], 700 + 100 - story["objects"][instances[currentRoom][draggingObject]["id"]]["bbox_right"]);
             instances[currentRoom][draggingObject]["posy"] = mouseRelativePosition()["y"] + yDeviation;
+            instances[currentRoom][draggingObject]["posy"] = clamp(instances[currentRoom][draggingObject]["posy"], 100 - story["objects"][instances[currentRoom][draggingObject]["id"]]["bbox_top"], 500 + 100 - story["objects"][instances[currentRoom][draggingObject]["id"]]["bbox_bottom"]);
             drawObjectsToCanvas();
         }
+    }
+
+    function clamp(x, min, max)
+    {
+        return Math.min(Math.max(x, min), max);
     }
 
     function checkIfTransparent(objectId, index) {
