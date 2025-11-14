@@ -90,7 +90,7 @@
             instances.push([]);
             for (let j=0; j < story["rooms"][i]["objects"].length; j++) {
                 let object = story["rooms"][i]["objects"][j];
-                instances[i].push({"id":object["id"], "posx":object["posx"], "posy":object.posy})
+                instances[i].push({"id":object["id"], "posx":object["posx"], "posy":object.posy});
             }
         }
     }
@@ -219,6 +219,13 @@
         }
         else {
             return;
+        }
+        if (story["rooms"][currentRoom]["state"] === "restarts") {
+            instances[currentRoom] = [];
+            for (let i=0; i < story["rooms"][currentRoom]["objects"].length; i++) {
+                let object = story["rooms"][currentRoom]["objects"][i];
+                instances[currentRoom].push({"id":object["id"], "posx":object["posx"], "posy":object.posy});
+            }
         }
         
         // TODO: take left/right
