@@ -16,6 +16,9 @@
     let xDeviation = 0;
     let yDeviation = 0;
     let mouse = mousePosition();
+    let clicking = false;
+    let tapTimer = 0;
+	let duration = 250;
 
     let canvas;
     let ctx;
@@ -55,9 +58,23 @@
         initStory();
     }
 
+    $: if (tapTimer === duration) {
+        console.log("taptimer klaar");
+        clicking = false;
+    }
+
     onMount(() => {
         ctx = canvas.getContext("2d", {willReadFrequently:true});
         fetchStory();
+
+        let last_time = performance.now();
+
+		let frame = requestAnimationFrame(function update(time) {
+			frame = requestAnimationFrame(update);
+
+			tapTimer += Math.min(time - last_time, duration - tapTimer);
+			last_time = time;
+		});
     });
 
     async function fetchStory() {
@@ -135,7 +152,8 @@
     }
 
     function dragObject() {
-        console.log("start dragging");
+        clicking = true;
+        tapTimer = 0;
         for (let i=0; i < instances[currentRoom].length; i++) {
             let objectId = instances[currentRoom][i]["id"];
             if (story["objects"][objectId]["mobility"] === "movable") {
@@ -157,7 +175,6 @@
     function stopDragging() {
         dragging = false;
         draggingObject = -1;
-        console.log("stop dragging");
     }
 
     function onMove(event) {
@@ -176,8 +193,6 @@
     }
 
     function checkIfTransparent(objectId, index) {
-        // console.log("object geklikt");
-        // console.log(index);
         var r = 10;
         var mx = mouseRelativePosition()["x"] - (instances[currentRoom][index]["posx"] - 100);
         var my = mouseRelativePosition()["y"] - (instances[currentRoom][index]["posy"] - 100);
@@ -186,18 +201,10 @@
             {
                 if (check_pixel(objectId, xxx, yyy))
                 {
-                    console.log("draggable");
                     return true;
-                    // if (!object_is_static[object[current_room][i]])
-                    //     hover_target = i;
-                    // else
-                    //     hover_target_static = i;
-                    // xxx = 99999;
-                    // yyy = 99999;
                 }
             }
         }
-        console.log("not draggable");
         return false;
     }
     
@@ -217,10 +224,8 @@
     #storyCanvas {
         position: relative;
         border: 4px solid black;
-        /* background-color: blue; */
     }
     #canvasContainer {
-        /* background-color: red; */
     }
 </style>
 
