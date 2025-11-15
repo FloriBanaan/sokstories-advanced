@@ -13,6 +13,7 @@
     let found = false;
     let currentRoom = 0;
     let dragging = false;
+    let draggingObject = -1;
     let selectedObject = -1;
     let xDeviation = 0;
     let yDeviation = 0;
@@ -90,7 +91,7 @@
             instances.push([]);
             for (let j=0; j < story["rooms"][i]["objects"].length; j++) {
                 let object = story["rooms"][i]["objects"][j];
-                instances[i].push({"id":object["id"], "posx":object["posx"], "posy":object.posy});
+                instances[i].push({"id":object["id"], "posx":object["posx"], "posy":object["posy"]});
             }
         }
     }
@@ -139,9 +140,12 @@
 
     function drawObjectsToCanvas() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // console.log("instances hier: " + instances[currentRoom]);
+        // console.log(instances[currentRoom][1]);
         for (let i=0; i < instances[currentRoom].length; i++) {
             let object = instances[currentRoom][i];
             let objectId = object["id"];
+            // console.log("object id: " + object["id"]);
             let objectSprite = story["objects"][objectId]["img"];
             ctx.drawImage(objectSprite, object["posx"] -100, object["posy"] -100);
         }
@@ -165,6 +169,7 @@
                 if (checkIfTransparent(objectId, i)) {
                     selectedObject = i;
                     if (story["objects"][objectId]["mobility"] === "movable") {
+                        draggingObject = i;
                         dragging = true;
                         xDeviation = instances[currentRoom][selectedObject]["posx"] - mouseRelativePosition()["x"];
                         yDeviation = instances[currentRoom][selectedObject]["posy"] - mouseRelativePosition()["y"];
@@ -175,16 +180,19 @@
     }
 
     function onMouseUp() {
+        dragging = false;
+        // console.log("geselecteerd object: " + selectedObject);
         if (selectedObject === -1) {
             return;
         }
         if (tapTimer < tapDuration) {
             // console.log("op tijd losgelaten");
-            console.log("geselecteerd object: " + selectedObject);
+            // console.log("geselecteerd object: " + selectedObject);
             checkOnClickRules();
         }
-        dragging = false;
+        draggingObject = -1;
         selectedObject = -1;
+        // console.log("geselecteerd object 2: " + selectedObject);
     }
 
     function checkOnClickRules() {
@@ -192,27 +200,37 @@
         for (let i=0; i < story["transitions"].length; i++) {
             let transition = story["transitions"][i];
             if ((objectId === transition["pos1"] && transition["pos2"] === empty && transition["condition"] === "click") || (objectId === transition["pos2"] && transition["pos1"] === empty && transition["condition"] === "click")) {
-                console.log("regel gevonden");
-                doTransitionRule(i);
+                // console.log("regel gevonden");
+                doTransition(i);
+            }
+        }
+        for (let i=0; i < story["rules"].length; i++) {
+            let rule = story["rules"][i];
+            if (objectId === rule["pos1"] && rule["pos2"] === empty && rule["condition"] === "click") {
+                // console.log("regel gevonden");
+                doRule(i, selectedObject, empty);
+            }
+            else if (objectId === rule["pos2"] && rule["pos1"] === empty && rule["condition"] === "click") {
+                doRule(i, empty, selectedObject);
             }
         }
     }
 
-    function doTransitionRule(index) {
+    function doTransition(index) {
         let transition = story["transitions"][index];
         if (transition["goto"] === "next") {
             currentRoom += 1;
             if (currentRoom === story["rooms"].length) {
                 currentRoom = 0;
             }
-            console.log("op naar de volgende kamer");
+            // console.log("op naar de volgende kamer");
         }
         else if (transition["goto"] === "prev") {
             currentRoom -= 1;
             if (currentRoom < 0) {
                 currentRoom = story["rooms"].length - 1;
             }
-            console.log("op naar de vorige kamer");
+            // console.log("op naar de vorige kamer");
         }
         else if (transition["goto"] != empty) {
             currentRoom = transition["goto"];
@@ -224,7 +242,7 @@
             instances[currentRoom] = [];
             for (let i=0; i < story["rooms"][currentRoom]["objects"].length; i++) {
                 let object = story["rooms"][currentRoom]["objects"][i];
-                instances[currentRoom].push({"id":object["id"], "posx":object["posx"], "posy":object.posy});
+                instances[currentRoom].push({"id":object["id"], "posx":object["posx"], "posy":object["posy"]});
             }
         }
         
@@ -234,12 +252,50 @@
         drawObjectsToCanvas();
     }
 
+    function doRule(index, pos1InstanceId, pos2InstanceId) {
+        let rule = story["rules"][index];
+        // console.log(index);
+        // console.log(pos1InstanceId);
+        // console.log(pos2InstanceId);
+        // if (pos1InstanceId === empty) {
+        //     pos1InstanceId = pos2InstanceId;
+        // }
+        // if (pos2InstanceId === empty) {
+        //     pos2InstanceId = pos1InstanceId;
+        // }
+        if (rule["pos3"] != empty) {
+            // let newInstance = story["objects"][rule["pos3"]];
+            // console.log(newInstance);
+            // console.log(instances[currentRoom][pos1InstanceId]);
+            if (pos1InstanceId != empty) {
+                instances[currentRoom][pos1InstanceId] = {"id": rule["pos3"], "posx": instances[currentRoom][pos1InstanceId]["posx"], "posy": instances[currentRoom][pos1InstanceId]["posy"]};
+            }
+            else {
+                console.log("deze doen we");
+                instances[currentRoom].push({"id": rule["pos3"], "posx": instances[currentRoom][pos2InstanceId]["posx"], "posy": instances[currentRoom][pos2InstanceId]["posy"]});
+            }
+            // console.log("dit is het: " + instances[currentRoom][pos1]);
+            // console.log(instances[currentRoom][pos1]);
+        }
+        if (rule["pos4"] != empty) {
+            // let newInstance = story["objects"][rule["pos4"]];
+            if (pos2InstanceId != empty) {
+                instances[currentRoom][pos2InstanceId] = {"id": rule["pos4"], "posx": instances[currentRoom][pos2InstanceId]["posx"], "posy": instances[currentRoom][pos2InstanceId]["posy"]};
+            }
+            else {
+                instances[currentRoom].push({"id": rule["pos4"], "posx": instances[currentRoom][pos1InstanceId]["posx"], "posy": instances[currentRoom][pos1InstanceId]["posy"]});
+            }
+        }
+        drawObjectsToCanvas();
+    }
+
     function onMove(event) {
         if(dragging) {
-            instances[currentRoom][selectedObject]["posx"] = mouseRelativePosition()["x"] + xDeviation;
-            instances[currentRoom][selectedObject]["posx"] = clamp(instances[currentRoom][selectedObject]["posx"], 100 - story["objects"][instances[currentRoom][selectedObject]["id"]]["bbox_left"], 700 + 100 - story["objects"][instances[currentRoom][selectedObject]["id"]]["bbox_right"]);
-            instances[currentRoom][selectedObject]["posy"] = mouseRelativePosition()["y"] + yDeviation;
-            instances[currentRoom][selectedObject]["posy"] = clamp(instances[currentRoom][selectedObject]["posy"], 100 - story["objects"][instances[currentRoom][selectedObject]["id"]]["bbox_top"], 500 + 100 - story["objects"][instances[currentRoom][selectedObject]["id"]]["bbox_bottom"]);
+            selectedObject = draggingObject;
+            instances[currentRoom][draggingObject]["posx"] = mouseRelativePosition()["x"] + xDeviation;
+            instances[currentRoom][draggingObject]["posx"] = clamp(instances[currentRoom][draggingObject]["posx"], 100 - story["objects"][instances[currentRoom][draggingObject]["id"]]["bbox_left"], 700 + 100 - story["objects"][instances[currentRoom][draggingObject]["id"]]["bbox_right"]);
+            instances[currentRoom][draggingObject]["posy"] = mouseRelativePosition()["y"] + yDeviation;
+            instances[currentRoom][draggingObject]["posy"] = clamp(instances[currentRoom][draggingObject]["posy"], 100 - story["objects"][instances[currentRoom][draggingObject]["id"]]["bbox_top"], 500 + 100 - story["objects"][instances[currentRoom][draggingObject]["id"]]["bbox_bottom"]);
             drawObjectsToCanvas();
         }
     }
