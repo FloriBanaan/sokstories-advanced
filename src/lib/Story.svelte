@@ -22,6 +22,7 @@
     let tapTimer = 0;
 	let tapDuration = 250;
     let empty = -4;
+    let loadedSprites = 0;
 
     let canvas;
     let ctx;
@@ -61,6 +62,16 @@
         initStory();
     }
 
+    $: if (loadedSprites > 0) {
+        if (loadedSprites === story["objects"].length) {
+            // console.log("klaar");
+            setInterval(() => {
+                doTick();
+            }, 1000)
+        }
+    }
+
+
     $: if (tapTimer === tapDuration) {
         clicking = false;
     }
@@ -90,13 +101,12 @@
             instances.push([]);
             for (let j=0; j < story["rooms"][i]["objects"].length; j++) {
                 let object = story["rooms"][i]["objects"][j];
-                instances[i].push({"id":object["id"], "posx":object["posx"], "posy":object["posy"]});
+                instances[i].push({"id":object["id"], "posx":object["posx"], "posy":object["posy"], "changed": false});
             }
         }
     }
 
     function loadSprites() {
-        console.log("even de sprites inladen");
         for (let i=0; i < story["objects"].length; i++) {
             let spriteBase64 = "data:image/png;base64," + story["objects"][i]["img"];
             var sprite = new Image();
@@ -106,7 +116,6 @@
                 calculateHitboxes(i, sprite);
             };
         }
-        console.log("klaar");
     }
 
     function calculateHitboxes(index, image)
@@ -120,7 +129,7 @@
         story["objects"][index]["bbox_right"] = 0;
         story["objects"][index]["bbox_bottom"] = 0;
         
-        for (var xp = 0; xp < image.width; xp++)
+        for (var xp = 0; xp < image.width; xp++) {
             for (var yp = 0; yp < image.height; yp++)
             {
                 var i = xp * 4 + yp * image.width * 4;
@@ -135,6 +144,8 @@
                 else
                     story["objects"][index]["mask"][xp + yp * image.width] = false;
             }
+        }
+        loadedSprites++;
     }
 
     function drawObjectsToCanvas() {
@@ -150,7 +161,7 @@
     function initStory() {
         initInstances();
         loadSprites();
-        drawObjectsToCanvas();
+        // drawObjectsToCanvas();
     }
 
     function selectObject() {
@@ -318,7 +329,7 @@
             instances[currentRoom] = [];
             for (let i=0; i < story["rooms"][currentRoom]["objects"].length; i++) {
                 let object = story["rooms"][currentRoom]["objects"][i];
-                instances[currentRoom].push({"id":object["id"], "posx":object["posx"], "posy":object["posy"]});
+                instances[currentRoom].push({"id":object["id"], "posx":object["posx"], "posy":object["posy"], "changed": false});
             }
         }
         
@@ -334,10 +345,10 @@
         let removePos2 = false;
         if (rule["pos3"] != empty) {
             if (pos1InstanceId != empty) {
-                instances[currentRoom][pos1InstanceId] = {"id": rule["pos3"], "posx": instances[currentRoom][pos1InstanceId]["posx"], "posy": instances[currentRoom][pos1InstanceId]["posy"]};
+                instances[currentRoom][pos1InstanceId] = {"id": rule["pos3"], "posx": instances[currentRoom][pos1InstanceId]["posx"], "posy": instances[currentRoom][pos1InstanceId]["posy"], "changed": true};
             }
             else {
-                instances[currentRoom].push({"id": rule["pos3"], "posx": instances[currentRoom][pos2InstanceId]["posx"], "posy": instances[currentRoom][pos2InstanceId]["posy"]});
+                instances[currentRoom].push({"id": rule["pos3"], "posx": instances[currentRoom][pos2InstanceId]["posx"], "posy": instances[currentRoom][pos2InstanceId]["posy"], "changed": true});
             }
         }
         else {
@@ -347,10 +358,10 @@
         }
         if (rule["pos4"] != empty) {
             if (pos2InstanceId != empty) {
-                instances[currentRoom][pos2InstanceId] = {"id": rule["pos4"], "posx": instances[currentRoom][pos2InstanceId]["posx"], "posy": instances[currentRoom][pos2InstanceId]["posy"]};
+                instances[currentRoom][pos2InstanceId] = {"id": rule["pos4"], "posx": instances[currentRoom][pos2InstanceId]["posx"], "posy": instances[currentRoom][pos2InstanceId]["posy"], "changed": true};
             }
             else {
-                instances[currentRoom].push({"id": rule["pos4"], "posx": instances[currentRoom][pos1InstanceId]["posx"], "posy": instances[currentRoom][pos1InstanceId]["posy"]});
+                instances[currentRoom].push({"id": rule["pos4"], "posx": instances[currentRoom][pos1InstanceId]["posx"], "posy": instances[currentRoom][pos1InstanceId]["posy"], "changed": true});
             }
         }
         else {
@@ -383,7 +394,7 @@
             }
             let newInstancePosx = (pos1Posx + pos2Posx) / 2;
             let newInstancePosy = (pos1Posy + pos2Posy) / 2;
-            instances[currentRoom].push({"id": rule["pos5"], "posx": newInstancePosx, "posy": newInstancePosy});
+            instances[currentRoom].push({"id": rule["pos5"], "posx": newInstancePosx, "posy": newInstancePosy, "changed": true});
         }
         if (removePos1 && removePos2) {
             if (pos1InstanceId > pos2InstanceId) {
@@ -447,6 +458,50 @@
         return {"x" : $mouse.x - canvasx, "y" : $mouse.y - canvasy};
     }
 
+    function doTick() {
+        // console.log("hoi");
+        checkTickRules();
+        drawObjectsToCanvas();
+        for (let i=0; i < instances[currentRoom].length; i++) {
+            let instance = instances[currentRoom][i];
+            instances[currentRoom][i] = {...instance, "changed": false};
+            // console.log("na de tick: " + instances[currentRoom][i]["changed"]);
+        }
+    }
+
+    function checkTickRules() {
+        for (let i=0; i < story["rules"].length; i++) {
+            let rule = story["rules"][i];
+            if (rule["condition"] === "tick") {
+                for (let j=0; j < instances[currentRoom].length; j++) {
+                    console.log(instances[currentRoom][j]["changed"]);
+                    if (!(instances[currentRoom][j]["changed"])) {
+                        // console.log(instances[currentRoom].length);
+                        // console.log("varken");
+                        let objectId = instances[currentRoom][j]["id"];
+                        // console.log(instances);
+                        // console.log(objectId);
+                        // console.log(rule["pos1"]);
+                        // console.log("objectid:" + objectId);
+                        // console.log(rule["pos2"]);
+                        if (rule["pos1"] === objectId && rule["pos2"] === empty) {
+                            // COLLECT RULES
+                            // console.log("banaan");
+                            doRule(i, j, empty);
+                        }
+                        else if (rule["pos1"] === empty && rule["pos2"] === objectId) {
+                            // COLLECT RULES
+                            doRule(i, empty, j);
+                        }
+                        // if (rule["pos1"] === objectId || rule["pos2"] === objectId) {
+
+                        // }
+                    }
+                }
+            }
+        }
+    }
+
 </script>
 
 <style>
@@ -463,6 +518,7 @@
 <main>
     
     <!-- <iframe src='https://sok-stories.com/?JNLA?embed' width='200' height='200'></iframe> -->
+    <button onclick={doTick}> dotick</button>
     <div id="canvasContainer">
         <canvas bind:this={canvas} id="storyCanvas" width="700" height="500" onmousedown={selectObject}></canvas>
     </div>
