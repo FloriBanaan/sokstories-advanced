@@ -190,9 +190,107 @@
             // console.log("geselecteerd object: " + selectedObject);
             checkOnClickRules();
         }
+        if (draggingObject != -1) {
+            // console.log("hier gaat even wat gebeuren");
+            checkOnClickCombineRules();
+        }
         draggingObject = -1;
         selectedObject = -1;
         // console.log("geselecteerd object 2: " + selectedObject);
+    }
+
+    function checkOnClickCombineRules() {
+        let objectId = instances[currentRoom][draggingObject]["id"];
+        // console.log(objectId);
+        for (let i=0; i < story["rules"].length; i++) {
+            let rule = story["rules"][i];
+            // console.log("hoi");
+            // console.log("---------------");
+            // console.log(i);
+            // console.log(rule["pos1"]);
+            // console.log(rule["pos2"]);
+            // console.log(rule["pos1"] === objectId && rule["pos2"] != empty);
+            // console.log(rule["pos1"] != empty && rule["pos2"] === objectId);
+            // console.log(rule["condition"] === "click");
+            let otherPosId = empty;
+            let selectedObjectPos = 0;
+            if (rule["pos1"] === objectId && rule["pos2"] != empty && rule["condition"] === "click") {
+                otherPosId = rule["pos2"];
+                selectedObjectPos = 1;
+            }
+            else if (rule["pos1"] != empty && rule["pos2"] === objectId && rule["condition"] === "click") {
+                otherPosId = rule["pos1"];
+                selectedObjectPos = 2;
+            }
+            if (otherPosId != empty) {
+                // console.log("regel gevonden");
+                // console.log(instances[currentRoom]);
+                // console.log(instances[currentRoom].length);
+                for (let j=0; j < instances[currentRoom].length; j++) {
+                    // console.log("varken");
+                    let instance = instances[currentRoom][j];
+                    // console.log(instance["id"]);
+                    // console.log(instances[currentRoom][otherPosId]["id"]);
+                    if (instance["id"] === otherPosId && j != draggingObject) {
+                        // console.log("object gevonden");
+                        if(checkCollision(draggingObject, j)) {
+                            // console.log("collision!");
+                            if (selectedObjectPos === 1) {
+                                doRule(i, draggingObject, j);
+                            }
+                            else {
+                                doRule(i, j, draggingObject);
+                            }
+                            return;
+                        }
+                        else {
+                            // console.log("geen collision");
+                        }
+                    }
+                }
+            }
+        }
+        // console.log(selectedObject);
+    }
+
+    function checkCollision(instance1Id, instance2Id) {
+        let instance1 = instances[currentRoom][instance1Id];
+        let instance2 = instances[currentRoom][instance2Id];
+        let x1 = instance1["posx"] - 100;
+        let y1 = instance1["posy"] - 100;
+        let x2 = instance2["posx"] - 100;
+        let y2 = instance2["posy"] - 100;
+        x1 -= 100;
+        y1 -= 100;
+        x2 -= 100;
+        y2 -= 100;
+
+        x1 = Math.floor(x1);
+        y1 = Math.floor(y1);
+        x2 = Math.floor(x2);
+        y2 = Math.floor(y2);
+
+        let instance1Object = story["objects"][instance1["id"]];
+        let instance2Object = story["objects"][instance2["id"]];
+
+        var left = Math.max(x1 + instance1Object["bbox_left"], x2 + instance2Object["bbox_left"]);
+        var top  = Math.max(y1 + instance1Object["bbox_top"], y2 + instance2Object["bbox_top"]);
+        var right = Math.min(x1 + instance1Object["bbox_right"], x2 + instance2Object["bbox_right"]);
+        var bottom  = Math.min(y1 + instance1Object["bbox_bottom"], y2 + instance2Object["bbox_bottom"]);
+
+        for (var xp = left; xp < right; xp++)
+            for (var yp = top; yp < bottom; yp++)
+            {
+                var i1 = (xp - x1) + (yp - y1) * instance1Object["img"].width;
+                var i2 = (xp - x2) + (yp - y2) * instance2Object["img"].width;
+                if (instance1Object["mask"][i1] && instance1Object["mask"][i2])
+                    return true;
+            }
+        return false;
+
+        // console.log("even collision checken");
+        // console.log(instance1Id);
+        // console.log(instance2Id);
     }
 
     function checkOnClickRules() {
@@ -202,6 +300,8 @@
             if ((objectId === transition["pos1"] && transition["pos2"] === empty && transition["condition"] === "click") || (objectId === transition["pos2"] && transition["pos1"] === empty && transition["condition"] === "click")) {
                 // console.log("regel gevonden");
                 doTransition(i);
+                selectedObject = -1;
+                draggingObject = -1;
             }
         }
         for (let i=0; i < story["rules"].length; i++) {
@@ -209,9 +309,13 @@
             if (objectId === rule["pos1"] && rule["pos2"] === empty && rule["condition"] === "click") {
                 // console.log("regel gevonden");
                 doRule(i, selectedObject, empty);
+                selectedObject = -1;
+                draggingObject = -1;
             }
             else if (objectId === rule["pos2"] && rule["pos1"] === empty && rule["condition"] === "click") {
                 doRule(i, empty, selectedObject);
+                selectedObject = -1;
+                draggingObject = -1;
             }
         }
     }
@@ -254,6 +358,8 @@
 
     function doRule(index, pos1InstanceId, pos2InstanceId) {
         let rule = story["rules"][index];
+        let removePos1 = false;
+        let removePos2 = false;
         // console.log(index);
         // console.log(pos1InstanceId);
         // console.log(pos2InstanceId);
@@ -271,11 +377,17 @@
                 instances[currentRoom][pos1InstanceId] = {"id": rule["pos3"], "posx": instances[currentRoom][pos1InstanceId]["posx"], "posy": instances[currentRoom][pos1InstanceId]["posy"]};
             }
             else {
-                console.log("deze doen we");
+                // console.log("deze doen we");
                 instances[currentRoom].push({"id": rule["pos3"], "posx": instances[currentRoom][pos2InstanceId]["posx"], "posy": instances[currentRoom][pos2InstanceId]["posy"]});
+                // removePos1 = true;
             }
             // console.log("dit is het: " + instances[currentRoom][pos1]);
             // console.log(instances[currentRoom][pos1]);
+        }
+        else {
+            if (pos1InstanceId != empty) {
+                removePos1 = true;
+            }
         }
         if (rule["pos4"] != empty) {
             // let newInstance = story["objects"][rule["pos4"]];
@@ -284,8 +396,65 @@
             }
             else {
                 instances[currentRoom].push({"id": rule["pos4"], "posx": instances[currentRoom][pos1InstanceId]["posx"], "posy": instances[currentRoom][pos1InstanceId]["posy"]});
+                // removePos2 = true;
             }
         }
+        else {
+            if (pos2InstanceId != empty) {
+                removePos2 = true;
+            }
+        }
+        if (rule["pos5"] != empty) {
+            let pos1Posx = 0;
+            let pos1Posy = 0;
+            let pos2Posx = 0;
+            let pos2Posy = 0;
+            if (pos1InstanceId === empty) {
+                pos2Posx = instances[currentRoom][pos2InstanceId]["posx"];
+                pos2Posy = instances[currentRoom][pos2InstanceId]["posy"];
+                pos1Posx = pos2Posx;
+                pos1Posy = pos2Posy;
+                // pos1InstanceId = pos2InstanceId;
+            }
+            else if (pos2InstanceId === empty) {
+                pos1Posx = instances[currentRoom][pos1InstanceId]["posx"];
+                pos1Posy = instances[currentRoom][pos1InstanceId]["posy"];
+                pos2Posx = pos1Posx;
+                pos2Posy = pos1Posy;
+                // pos2InstanceId = pos1InstanceId;
+            }
+            else {
+                pos2Posx = instances[currentRoom][pos2InstanceId]["posx"];
+                pos2Posy = instances[currentRoom][pos2InstanceId]["posy"];
+                pos1Posx = instances[currentRoom][pos1InstanceId]["posx"];
+                pos1Posy = instances[currentRoom][pos1InstanceId]["posy"];
+            }
+            let newInstancePosx = (pos1Posx + pos2Posx) / 2;
+            let newInstancePosy = (pos1Posy + pos2Posy) / 2;
+            instances[currentRoom].push({"id": rule["pos5"], "posx": newInstancePosx, "posy": newInstancePosy});
+        }
+        // console.log(removePos1);
+        // console.log(removePos2);
+        // console.log("dit hoort true te zijn:");
+        // console.log(removePos2);
+        if (removePos1 && removePos2) {
+            if (pos1InstanceId > pos2InstanceId) {
+                instances[currentRoom].splice(pos1InstanceId, 1);
+                instances[currentRoom].splice(pos2InstanceId, 1);
+            }
+            else {
+                instances[currentRoom].splice(pos2InstanceId, 1);
+                instances[currentRoom].splice(pos1InstanceId, 1);
+            }
+        }
+        else if (removePos1) {
+            instances[currentRoom].splice(pos1InstanceId, 1);
+        }
+        else if (removePos2) {
+            // console.log("dit is hem");
+            instances[currentRoom].splice(pos2InstanceId, 1);
+        }
+
         drawObjectsToCanvas();
     }
 
