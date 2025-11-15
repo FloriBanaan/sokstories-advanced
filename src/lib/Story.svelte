@@ -62,7 +62,6 @@
     }
 
     $: if (tapTimer === tapDuration) {
-        // console.log("taptimer klaar");
         clicking = false;
     }
 
@@ -140,12 +139,9 @@
 
     function drawObjectsToCanvas() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        // console.log("instances hier: " + instances[currentRoom]);
-        // console.log(instances[currentRoom][1]);
         for (let i=0; i < instances[currentRoom].length; i++) {
             let object = instances[currentRoom][i];
             let objectId = object["id"];
-            // console.log("object id: " + object["id"]);
             let objectSprite = story["objects"][objectId]["img"];
             ctx.drawImage(objectSprite, object["posx"] -100, object["posy"] -100);
         }
@@ -181,37 +177,23 @@
 
     function onMouseUp() {
         dragging = false;
-        // console.log("geselecteerd object: " + selectedObject);
         if (selectedObject === -1) {
             return;
         }
         if (tapTimer < tapDuration) {
-            // console.log("op tijd losgelaten");
-            // console.log("geselecteerd object: " + selectedObject);
             checkOnClickRules();
         }
         if (draggingObject != -1) {
-            // console.log("hier gaat even wat gebeuren");
             checkOnClickCombineRules();
         }
         draggingObject = -1;
         selectedObject = -1;
-        // console.log("geselecteerd object 2: " + selectedObject);
     }
 
     function checkOnClickCombineRules() {
         let objectId = instances[currentRoom][draggingObject]["id"];
-        // console.log(objectId);
         for (let i=0; i < story["rules"].length; i++) {
             let rule = story["rules"][i];
-            // console.log("hoi");
-            // console.log("---------------");
-            // console.log(i);
-            // console.log(rule["pos1"]);
-            // console.log(rule["pos2"]);
-            // console.log(rule["pos1"] === objectId && rule["pos2"] != empty);
-            // console.log(rule["pos1"] != empty && rule["pos2"] === objectId);
-            // console.log(rule["condition"] === "click");
             let otherPosId = empty;
             let selectedObjectPos = 0;
             if (rule["pos1"] === objectId && rule["pos2"] != empty && rule["condition"] === "click") {
@@ -223,18 +205,10 @@
                 selectedObjectPos = 2;
             }
             if (otherPosId != empty) {
-                // console.log("regel gevonden");
-                // console.log(instances[currentRoom]);
-                // console.log(instances[currentRoom].length);
                 for (let j=0; j < instances[currentRoom].length; j++) {
-                    // console.log("varken");
                     let instance = instances[currentRoom][j];
-                    // console.log(instance["id"]);
-                    // console.log(instances[currentRoom][otherPosId]["id"]);
                     if (instance["id"] === otherPosId && j != draggingObject) {
-                        // console.log("object gevonden");
                         if(checkCollision(draggingObject, j)) {
-                            // console.log("collision!");
                             if (selectedObjectPos === 1) {
                                 doRule(i, draggingObject, j);
                             }
@@ -244,13 +218,11 @@
                             return;
                         }
                         else {
-                            // console.log("geen collision");
                         }
                     }
                 }
             }
         }
-        // console.log(selectedObject);
     }
 
     function checkCollision(instance1Id, instance2Id) {
@@ -360,29 +332,13 @@
         let rule = story["rules"][index];
         let removePos1 = false;
         let removePos2 = false;
-        // console.log(index);
-        // console.log(pos1InstanceId);
-        // console.log(pos2InstanceId);
-        // if (pos1InstanceId === empty) {
-        //     pos1InstanceId = pos2InstanceId;
-        // }
-        // if (pos2InstanceId === empty) {
-        //     pos2InstanceId = pos1InstanceId;
-        // }
         if (rule["pos3"] != empty) {
-            // let newInstance = story["objects"][rule["pos3"]];
-            // console.log(newInstance);
-            // console.log(instances[currentRoom][pos1InstanceId]);
             if (pos1InstanceId != empty) {
                 instances[currentRoom][pos1InstanceId] = {"id": rule["pos3"], "posx": instances[currentRoom][pos1InstanceId]["posx"], "posy": instances[currentRoom][pos1InstanceId]["posy"]};
             }
             else {
-                // console.log("deze doen we");
                 instances[currentRoom].push({"id": rule["pos3"], "posx": instances[currentRoom][pos2InstanceId]["posx"], "posy": instances[currentRoom][pos2InstanceId]["posy"]});
-                // removePos1 = true;
             }
-            // console.log("dit is het: " + instances[currentRoom][pos1]);
-            // console.log(instances[currentRoom][pos1]);
         }
         else {
             if (pos1InstanceId != empty) {
@@ -390,13 +346,11 @@
             }
         }
         if (rule["pos4"] != empty) {
-            // let newInstance = story["objects"][rule["pos4"]];
             if (pos2InstanceId != empty) {
                 instances[currentRoom][pos2InstanceId] = {"id": rule["pos4"], "posx": instances[currentRoom][pos2InstanceId]["posx"], "posy": instances[currentRoom][pos2InstanceId]["posy"]};
             }
             else {
                 instances[currentRoom].push({"id": rule["pos4"], "posx": instances[currentRoom][pos1InstanceId]["posx"], "posy": instances[currentRoom][pos1InstanceId]["posy"]});
-                // removePos2 = true;
             }
         }
         else {
@@ -414,14 +368,12 @@
                 pos2Posy = instances[currentRoom][pos2InstanceId]["posy"];
                 pos1Posx = pos2Posx;
                 pos1Posy = pos2Posy;
-                // pos1InstanceId = pos2InstanceId;
             }
             else if (pos2InstanceId === empty) {
                 pos1Posx = instances[currentRoom][pos1InstanceId]["posx"];
                 pos1Posy = instances[currentRoom][pos1InstanceId]["posy"];
                 pos2Posx = pos1Posx;
                 pos2Posy = pos1Posy;
-                // pos2InstanceId = pos1InstanceId;
             }
             else {
                 pos2Posx = instances[currentRoom][pos2InstanceId]["posx"];
@@ -433,10 +385,6 @@
             let newInstancePosy = (pos1Posy + pos2Posy) / 2;
             instances[currentRoom].push({"id": rule["pos5"], "posx": newInstancePosx, "posy": newInstancePosy});
         }
-        // console.log(removePos1);
-        // console.log(removePos2);
-        // console.log("dit hoort true te zijn:");
-        // console.log(removePos2);
         if (removePos1 && removePos2) {
             if (pos1InstanceId > pos2InstanceId) {
                 instances[currentRoom].splice(pos1InstanceId, 1);
@@ -451,7 +399,6 @@
             instances[currentRoom].splice(pos1InstanceId, 1);
         }
         else if (removePos2) {
-            // console.log("dit is hem");
             instances[currentRoom].splice(pos2InstanceId, 1);
         }
 
