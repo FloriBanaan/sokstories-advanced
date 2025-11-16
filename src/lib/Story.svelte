@@ -62,14 +62,14 @@
         initStory();
     }
 
-    $: if (loadedSprites > 0) {
-        if (loadedSprites === story["objects"].length) {
-            // console.log("klaar");
-            setInterval(() => {
-                doTick();
-            }, 1000)
-        }
-    }
+    // $: if (loadedSprites > 0) {
+    //     if (loadedSprites === story["objects"].length) {
+    //         // console.log("klaar");
+    //         setInterval(() => {
+    //             doTick();
+    //         }, 1000)
+    //     }
+    // }
 
 
     $: if (tapTimer === tapDuration) {
@@ -220,11 +220,12 @@
                     let instance = instances[currentRoom][j];
                     if (instance["id"] === otherPosId && j != draggingObject) {
                         if(checkCollision(draggingObject, j)) {
+                            let r = getRandomRule(rule["pos1"], rule["pos2"]);
                             if (selectedObjectPos === 1) {
-                                doRule(i, draggingObject, j);
+                                doRule(r, draggingObject, j);
                             }
                             else {
-                                doRule(i, j, draggingObject);
+                                doRule(r, j, draggingObject);
                             }
                             return;
                         }
@@ -285,20 +286,24 @@
                 doTransition(i);
                 selectedObject = -1;
                 draggingObject = -1;
+                return;
             }
         }
         for (let i=0; i < story["rules"].length; i++) {
             let rule = story["rules"][i];
+            let r = getRandomRule(rule["pos1"], rule["pos2"]);
             if (objectId === rule["pos1"] && rule["pos2"] === empty && rule["condition"] === "click") {
                 // console.log("regel gevonden");
-                doRule(i, selectedObject, empty);
+                doRule(r, selectedObject, empty);
                 selectedObject = -1;
                 draggingObject = -1;
+                return;
             }
             else if (objectId === rule["pos2"] && rule["pos1"] === empty && rule["condition"] === "click") {
-                doRule(i, empty, selectedObject);
+                doRule(r, empty, selectedObject);
                 selectedObject = -1;
                 draggingObject = -1;
+                return;
             }
         }
     }
@@ -485,21 +490,34 @@
                         // console.log("objectid:" + objectId);
                         // console.log(rule["pos2"]);
                         if (rule["pos1"] === objectId && rule["pos2"] === empty) {
-                            // COLLECT RULES
+                            let r = getRandomRule(rule["pos1"], rule["pos2"]);
                             // console.log("banaan");
-                            doRule(i, j, empty);
+                            doRule(r, j, empty);
                         }
                         else if (rule["pos1"] === empty && rule["pos2"] === objectId) {
-                            // COLLECT RULES
-                            doRule(i, empty, j);
+                            let r = getRandomRule(rule["pos1"], rule["pos2"]);
+                            doRule(r, empty, j);
                         }
-                        // if (rule["pos1"] === objectId || rule["pos2"] === objectId) {
+                        else if (rule["pos1"] === objectId || rule["pos2"] === objectId) {
 
-                        // }
+                        }
                     }
                 }
             }
         }
+    }
+
+    function getRandomRule(pos1, pos2) {
+        let ruleCollection = [];
+        for (let i=0; i < story["rules"].length; i++) {
+            let rule = story["rules"][i];
+            if (pos1 === rule["pos1"] && pos2 === rule["pos2"]) {
+                ruleCollection.push(i);
+            }
+        }
+        let rule = ruleCollection[Math.floor(Math.random() * ruleCollection.length)]
+        // console.log(rule);
+        return rule;
     }
 
 </script>
