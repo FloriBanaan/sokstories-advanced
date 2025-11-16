@@ -1,4 +1,5 @@
 <script>
+    // @ts-nocheck
     import { event } from "@tauri-apps/api";
     import { invoke } from "@tauri-apps/api/core";
     import { onMount } from "svelte";
@@ -84,7 +85,7 @@
 <button on:click={verify}> Try again</button>
 
 {:else if code !== ""}
-<p> Thanks for creating an account, {name}! To continue, you need to verify your account to prove that the {name} sokstories account really belongs to you. To do this, please upload a story with the name: !bb verify {code}. Then click the button below to verify. Note: you may have to wait 10 minutes.</p>
+<p> Thanks for creating an account, {name}! To continue, you need to verify your account to prove that the {name} sokstories account really belongs to you. To do this, please upload a story with the name: bb verify {code}. Then click the button below to verify. Note: you may have to wait 10 minutes.</p>
 <button on:click={verify}> Verify</button>
 
 {:else if token === "key not found"}

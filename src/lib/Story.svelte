@@ -68,7 +68,7 @@
             // console.log("klaar");
             setInterval(() => {
                 doTick();
-            }, 1000)
+            }, 300)
         }
     }
 
@@ -92,7 +92,7 @@
     });
 
     async function fetchStory() {
-        storyString = await invoke("fetch_story", {id:"JNLA"});
+        storyString = await invoke("fetch_story", {id:"QBVL"});
         story = JSON.parse(storyString);
         found = true;
     }
@@ -262,8 +262,9 @@
                 for (let j=0; j < instances[currentRoom].length; j++) {
                     let instance = instances[currentRoom][j];
                     if (instance["id"] === otherPosId && j != draggingObject) {
+                        console.log("we hebben er eentje");
                         if(checkCollision(draggingObject, j)) {
-                            // console.log("collision gevonden");
+                            console.log("collision gevonden");
                             let t = getRandomTransition(transition["pos1"], transition["pos2"]);
                             if (selectedObjectPos === 1) {
                                 doTransition(t, draggingObject, j);
@@ -316,6 +317,7 @@
                 if (instance1Object["mask"][i1] && instance1Object["mask"][i2])
                     return true;
             }
+        // console.log("geen collision");
         return false;
 
         // console.log("even collision checken");
@@ -599,7 +601,7 @@
                         }
                         else if (rule["pos1"] === objectId || rule["pos2"] === objectId) {
                             for (let k=0; k < instances[currentRoom].length; k++) {
-                                if (j != k && ((instances[currentRoom][k]["id"] === rule["pos1"] && instances[currentRoom][j]["id"] === rule["pos2"]) || (instances[currentRoom][k]["id"] === rule["pos1"] && instances[currentRoom][j]["id"] === rule["pos2"]))) {
+                                if (j != k && !(instances[currentRoom][k]["changed"]) && ((instances[currentRoom][k]["id"] === rule["pos1"] && instances[currentRoom][j]["id"] === rule["pos2"]) || (instances[currentRoom][k]["id"] === rule["pos1"] && instances[currentRoom][j]["id"] === rule["pos2"]))) {
                                     if (checkCollision(j, k)) {
                                         let r = getRandomRule(rule["pos1"], rule["pos2"]);
                                         if (rule["pos1"] === instances[currentRoom][j]["id"]) {
@@ -637,6 +639,7 @@
                         for (let k=0; k < instances[currentRoom].length; k++) {
                             if (j != k && ((instances[currentRoom][k]["id"] === transition["pos1"] && instances[currentRoom][j]["id"] === transition["pos2"]) || (instances[currentRoom][k]["id"] === transition["pos1"] && instances[currentRoom][j]["id"] === transition["pos2"]))) {
                                 if (checkCollision(j, k)) {
+                                    console.log("collision gevonden");
                                     let t = getRandomTransition(transition["pos1"], transition["pos2"]);
                                     if (transition["pos1"] === instances[currentRoom][j]["id"]) {
                                         doTransition(t, j, k);
@@ -697,7 +700,6 @@
 <main>
     
     <!-- <iframe src='https://sok-stories.com/?JNLA?embed' width='200' height='200'></iframe> -->
-    <button onclick={doTick}> dotick</button>
     <div id="canvasContainer">
         <canvas bind:this={canvas} id="storyCanvas" width="700" height="500" onmousedown={selectObject}></canvas>
     </div>

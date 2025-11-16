@@ -1,11 +1,12 @@
 <script>
+    // @ts-nocheck
     import { event } from "@tauri-apps/api";
     import { invoke } from "@tauri-apps/api/core";
     import { onMount } from "svelte";
 
     let storyName = "";
     let makerName = "";
-    let storyRange = 0;
+    let storyRange = 1;
     let stories = "";
     let makers = "";
     let newStories = "";
@@ -57,8 +58,8 @@
         <button type="submit">Search</button>
     </form>
 
-    <button onclick={decreaseStoryRange}> Older</button>
-    <button onclick={increaseStoryRange}> Newer</button>
+    <button onclick={decreaseStoryRange}> Newer</button>
+    <button onclick={increaseStoryRange}> Older</button>
     
 
     {#each stories as story}

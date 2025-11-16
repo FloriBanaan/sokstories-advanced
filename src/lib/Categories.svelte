@@ -1,4 +1,5 @@
 <script>
+    // @ts-nocheck
     import { event } from "@tauri-apps/api";
     import { invoke } from "@tauri-apps/api/core";
     import { onMount } from "svelte";

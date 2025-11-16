@@ -1,4 +1,5 @@
 <script>
+  // @ts-nocheck
   import { event } from "@tauri-apps/api";
   import { invoke } from "@tauri-apps/api/core";
 
@@ -144,10 +145,14 @@ button {
   {#if currentPage === "login"}
   <Login onSetPage={setPage} onSetUser={setUser}></Login>
   {:else if currentPage === "main"}
-  <!-- <p> user:{user}</p>
+  <p> welcome, banaan!</p>
+  <hr style="color: black;">
   <Categories></Categories>
-  <Search></Search> -->
+  <hr>
+  <Search></Search>
+  {:else if currentPage === "story"}
   <Story></Story>
+  
   {:else if currentPage === "test"}
   <p> test</p>
   {/if}
