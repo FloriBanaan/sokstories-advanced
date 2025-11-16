@@ -23,6 +23,7 @@
 	let tapDuration = 250;
     let empty = -4;
     let loadedSprites = 0;
+    let transitioned = false;
 
     let canvas;
     let ctx;
@@ -191,12 +192,16 @@
         if (selectedObject === -1) {
             return;
         }
-        if (tapTimer < tapDuration) {
+        if (draggingObject != -1) {
+            checkOnClickCombineTransitions();
+            if (!(transitioned)) {
+                checkOnClickCombineRules();
+            }
+        }
+        if (tapTimer < tapDuration && !(transitioned) && selectedObject != -1) {
             checkOnClickRules();
         }
-        if (draggingObject != -1) {
-            checkOnClickCombineRules();
-        }
+        transitioned = false;
         draggingObject = -1;
         selectedObject = -1;
     }
@@ -223,9 +228,50 @@
                             let r = getRandomRule(rule["pos1"], rule["pos2"]);
                             if (selectedObjectPos === 1) {
                                 doRule(r, draggingObject, j);
+                                selectedObject = -1;
                             }
                             else {
                                 doRule(r, j, draggingObject);
+                                selectedObject = -1;
+                            }
+                            return;
+                        }
+                        else {
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    function checkOnClickCombineTransitions() {
+        let objectId = instances[currentRoom][draggingObject]["id"];
+        for (let i=0; i < story["transitions"].length; i++) {
+            let transition = story["transitions"][i];
+            let otherPosId = empty;
+            let selectedObjectPos = 0;
+            if (transition["pos1"] === objectId && transition["pos2"] != empty && transition["condition"] === "click") {
+                otherPosId = transition["pos2"];
+                selectedObjectPos = 1;
+            }
+            else if (transition["pos1"] != empty && transition["pos2"] === objectId && transition["condition"] === "click") {
+                otherPosId = transition["pos1"];
+                selectedObjectPos = 2;
+            }
+            if (otherPosId != empty) {
+                for (let j=0; j < instances[currentRoom].length; j++) {
+                    let instance = instances[currentRoom][j];
+                    if (instance["id"] === otherPosId && j != draggingObject) {
+                        if(checkCollision(draggingObject, j)) {
+                            // console.log("collision gevonden");
+                            let t = getRandomTransition(transition["pos1"], transition["pos2"]);
+                            if (selectedObjectPos === 1) {
+                                doTransition(t, draggingObject, j);
+                                transitioned = true;
+                            }
+                            else {
+                                doTransition(t, j, draggingObject);
+                                transitioned = true;
                             }
                             return;
                         }
@@ -278,6 +324,7 @@
     }
 
     function checkOnClickRules() {
+        let oldRoom = currentRoom;
         let objectId = instances[currentRoom][selectedObject]["id"];
         for (let i=0; i < story["transitions"].length; i++) {
             let transition = story["transitions"][i];
@@ -317,6 +364,7 @@
     }
 
     function doTransition(index, pos1InstanceId, pos2InstanceId) {
+        let oldRoom = currentRoom;
         let transition = story["transitions"][index];
         if (transition["goto"] === "next") {
             currentRoom += 1;
@@ -344,6 +392,24 @@
                 let object = story["rooms"][currentRoom]["objects"][i];
                 instances[currentRoom].push({"id":object["id"], "posx":object["posx"], "posy":object["posy"], "changed": false});
             }
+        }
+        if (transition["take"] != "none") {
+            let takenObject = {};
+            if (transition["take"] === "left") {
+                // console.log("left");
+                takenObject = instances[oldRoom][pos1InstanceId];
+                // console.log(takenObject);
+            }
+            else if (transition["take"] === "right") {
+                // console.log("right");
+                takenObject = instances[oldRoom][pos2InstanceId];
+            }
+            // console.log("taken object id: " + takenObject["id"]);
+            instances[currentRoom].push({"id":takenObject["id"], "posx":takenObject["posx"], "posy":takenObject["posy"], "changed":false});
+            if (instances[oldRoom][draggingObject]["id"] === takenObject["id"]) {
+                draggingObject = instances[currentRoom].length;
+            }
+            instances[oldRoom].splice(takenObject, 1);
         }
         
         // TODO: take left/right
