@@ -63,14 +63,14 @@
         initStory();
     }
 
-    // $: if (loadedSprites > 0) {
-    //     if (loadedSprites === story["objects"].length) {
-    //         // console.log("klaar");
-    //         setInterval(() => {
-    //             doTick();
-    //         }, 1000)
-    //     }
-    // }
+    $: if (loadedSprites > 0) {
+        if (loadedSprites === story["objects"].length) {
+            // console.log("klaar");
+            setInterval(() => {
+                doTick();
+            }, 1000)
+        }
+    }
 
 
     $: if (tapTimer === tapDuration) {
@@ -411,6 +411,10 @@
             }
             instances[oldRoom].splice(takenObject, 1);
         }
+        else {
+            draggingObject = -1;
+            dragging = false;
+        }
         
         // TODO: take left/right
 
@@ -556,13 +560,17 @@
 
     function doTick() {
         // console.log("hoi");
-        checkTickRules();
+        checkTickTransitions();
+        if (!(transitioned)) {
+            checkTickRules();
+        }
         drawObjectsToCanvas();
         for (let i=0; i < instances[currentRoom].length; i++) {
             let instance = instances[currentRoom][i];
             instances[currentRoom][i] = {...instance, "changed": false};
             // console.log("na de tick: " + instances[currentRoom][i]["changed"]);
         }
+        transitioned = false;
     }
 
     function checkTickRules() {
@@ -605,6 +613,44 @@
                             }
                         }
                     }
+                }
+            }
+        }
+    }
+
+    function checkTickTransitions() {
+        for (let i=0; i < story["transitions"].length; i++) {
+            let transition = story["transitions"][i];
+            if (transition["condition"] === "tick") {
+                for (let j=0; j < instances[currentRoom].length; j++) {
+                    // if (!(instances[currentRoom][j]["changed"])) {
+                    let objectId = instances[currentRoom][j]["id"];
+                    if (transition["pos1"] === objectId && transition["pos2"] === empty) {
+                        let t = getRandomTransition(transition["pos1"], transition["pos2"]);
+                        doTransition(t, j, empty);
+                    }
+                    else if (transition["pos1"] === empty && transition["pos2"] === objectId) {
+                        let t = getRandomTransition(transition["pos1"], transition["pos2"]);
+                        doTransition(t, empty, j);
+                    }
+                    else if (transition["pos1"] === objectId || transition["pos2"] === objectId) {
+                        for (let k=0; k < instances[currentRoom].length; k++) {
+                            if (j != k && ((instances[currentRoom][k]["id"] === transition["pos1"] && instances[currentRoom][j]["id"] === transition["pos2"]) || (instances[currentRoom][k]["id"] === transition["pos1"] && instances[currentRoom][j]["id"] === transition["pos2"]))) {
+                                if (checkCollision(j, k)) {
+                                    let t = getRandomTransition(transition["pos1"], transition["pos2"]);
+                                    if (transition["pos1"] === instances[currentRoom][j]["id"]) {
+                                        doTransition(t, j, k);
+                                        transitioned = true;
+                                    }
+                                    else {
+                                        doTransition(t, k, j);
+                                        transitioned = true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    // }
                 }
             }
         }
