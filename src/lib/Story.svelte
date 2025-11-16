@@ -62,14 +62,14 @@
         initStory();
     }
 
-    // $: if (loadedSprites > 0) {
-    //     if (loadedSprites === story["objects"].length) {
-    //         // console.log("klaar");
-    //         setInterval(() => {
-    //             doTick();
-    //         }, 1000)
-    //     }
-    // }
+    $: if (loadedSprites > 0) {
+        if (loadedSprites === story["objects"].length) {
+            // console.log("klaar");
+            setInterval(() => {
+                doTick();
+            }, 3000)
+        }
+    }
 
 
     $: if (tapTimer === tapDuration) {
@@ -348,6 +348,9 @@
         let rule = story["rules"][index];
         let removePos1 = false;
         let removePos2 = false;
+        // console.log(index);
+        // console.log(pos1InstanceId);
+        // console.log(pos2InstanceId);
         if (rule["pos3"] != empty) {
             if (pos1InstanceId != empty) {
                 instances[currentRoom][pos1InstanceId] = {"id": rule["pos3"], "posx": instances[currentRoom][pos1InstanceId]["posx"], "posy": instances[currentRoom][pos1InstanceId]["posy"], "changed": true};
@@ -403,22 +406,36 @@
         }
         if (removePos1 && removePos2) {
             if (pos1InstanceId > pos2InstanceId) {
-                instances[currentRoom].splice(pos1InstanceId, 1);
-                instances[currentRoom].splice(pos2InstanceId, 1);
+                removeInstance(pos1InstanceId);
+                removeInstance(pos2InstanceId);
             }
             else {
-                instances[currentRoom].splice(pos2InstanceId, 1);
-                instances[currentRoom].splice(pos1InstanceId, 1);
+                removeInstance(pos2InstanceId);
+                removeInstance(pos1InstanceId);
             }
         }
         else if (removePos1) {
-            instances[currentRoom].splice(pos1InstanceId, 1);
+            removeInstance(pos1InstanceId);
         }
         else if (removePos2) {
-            instances[currentRoom].splice(pos2InstanceId, 1);
+            removeInstance(pos2InstanceId);
         }
 
         drawObjectsToCanvas();
+    }
+
+    function removeInstance(instanceId) {
+        instances[currentRoom].splice(instanceId, 1);
+        if (draggingObject === empty) {
+            return;
+        }
+        else if (draggingObject === instanceId) {
+            dragging = false;
+            draggingObject = -1;
+        }
+        else if (draggingObject > instanceId) {
+            draggingObject -= 1;
+        }
     }
 
     function onMove(event) {
@@ -479,7 +496,7 @@
             let rule = story["rules"][i];
             if (rule["condition"] === "tick") {
                 for (let j=0; j < instances[currentRoom].length; j++) {
-                    console.log(instances[currentRoom][j]["changed"]);
+                    // console.log(instances[currentRoom][j]["changed"]);
                     if (!(instances[currentRoom][j]["changed"])) {
                         // console.log(instances[currentRoom].length);
                         // console.log("varken");
@@ -499,7 +516,19 @@
                             doRule(r, empty, j);
                         }
                         else if (rule["pos1"] === objectId || rule["pos2"] === objectId) {
-
+                            for (let k=0; k < instances[currentRoom].length; k++) {
+                                if (j != k && ((instances[currentRoom][k]["id"] === rule["pos1"] && instances[currentRoom][j]["id"] === rule["pos2"]) || (instances[currentRoom][k]["id"] === rule["pos1"] && instances[currentRoom][j]["id"] === rule["pos2"]))) {
+                                    if (checkCollision(j, k)) {
+                                        let r = getRandomRule(rule["pos1"], rule["pos2"]);
+                                        if (rule["pos1"] === instances[currentRoom][j]["id"]) {
+                                            doRule(r, j, k);
+                                        }
+                                        else {
+                                            doRule(r, k, j);
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
