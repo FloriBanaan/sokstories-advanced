@@ -62,14 +62,14 @@
         initStory();
     }
 
-    $: if (loadedSprites > 0) {
-        if (loadedSprites === story["objects"].length) {
-            // console.log("klaar");
-            setInterval(() => {
-                doTick();
-            }, 3000)
-        }
-    }
+    // $: if (loadedSprites > 0) {
+    //     if (loadedSprites === story["objects"].length) {
+    //         // console.log("klaar");
+    //         setInterval(() => {
+    //             doTick();
+    //         }, 1000)
+    //     }
+    // }
 
 
     $: if (tapTimer === tapDuration) {
@@ -281,9 +281,16 @@
         let objectId = instances[currentRoom][selectedObject]["id"];
         for (let i=0; i < story["transitions"].length; i++) {
             let transition = story["transitions"][i];
-            if ((objectId === transition["pos1"] && transition["pos2"] === empty && transition["condition"] === "click") || (objectId === transition["pos2"] && transition["pos1"] === empty && transition["condition"] === "click")) {
+            let t = getRandomTransition(transition["pos1"], transition["pos2"]);
+            if (objectId === transition["pos1"] && transition["pos2"] === empty && transition["condition"] === "click") {
                 // console.log("regel gevonden");
-                doTransition(i);
+                doTransition(t, selectedObject, empty);
+                selectedObject = -1;
+                draggingObject = -1;
+                return;
+            }
+            else if (objectId === transition["pos2"] && transition["pos1"] === empty && transition["condition"] === "click") {
+                doTransition(t, empty, selectedObject);
                 selectedObject = -1;
                 draggingObject = -1;
                 return;
@@ -291,8 +298,8 @@
         }
         for (let i=0; i < story["rules"].length; i++) {
             let rule = story["rules"][i];
-            let r = getRandomRule(rule["pos1"], rule["pos2"]);
             if (objectId === rule["pos1"] && rule["pos2"] === empty && rule["condition"] === "click") {
+                let r = getRandomRule(rule["pos1"], rule["pos2"]);
                 // console.log("regel gevonden");
                 doRule(r, selectedObject, empty);
                 selectedObject = -1;
@@ -300,6 +307,7 @@
                 return;
             }
             else if (objectId === rule["pos2"] && rule["pos1"] === empty && rule["condition"] === "click") {
+                let r = getRandomRule(rule["pos1"], rule["pos2"]);
                 doRule(r, empty, selectedObject);
                 selectedObject = -1;
                 draggingObject = -1;
@@ -308,7 +316,7 @@
         }
     }
 
-    function doTransition(index) {
+    function doTransition(index, pos1InstanceId, pos2InstanceId) {
         let transition = story["transitions"][index];
         if (transition["goto"] === "next") {
             currentRoom += 1;
@@ -547,6 +555,18 @@
         let rule = ruleCollection[Math.floor(Math.random() * ruleCollection.length)]
         // console.log(rule);
         return rule;
+    }
+
+    function getRandomTransition(pos1, pos2) {
+        let transitionCollection = [];
+        for (let i=0; i < story["transitions"].length; i++) {
+            let transition = story["transitions"][i];
+            if (pos1 === transition["pos1"] && pos2 === transition["pos2"]) {
+                transitionCollection.push(i);
+            }
+        }
+        let transition = transitionCollection[Math.floor(Math.random() * transitionCollection.length)]
+        return transition;
     }
 
 </script>
